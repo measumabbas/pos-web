@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A&Z Consultants - POS & Business Management Prototype</title>
+<style>
+:root{
+  --navy:#062b52;
+  --navy2:#0b3a6c;
+  --blue:#0b84ff;
+  --blue2:#2e9cff;
+  --cyan:#20b8d5;
+  --green:#13b76a;
+  --orange:#ff9f1c;
+  --red:#ff4d5b;
+  --purple:#7c5cff;
+  --bg:#f4f8fc;
+  --card:#ffffff;
+  --text:#1c2b3a;
+  --muted:#6f8193;
+  --border:#dfe8f0;
+  --shadow:0 8px 24px rgba(16,54,89,.08);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{
+  background:linear-gradient(180deg,#062b52 0%,#052441 100%);
+  color:#fff;position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:18px 12px 22px;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:12px}
+.brand img{width:122px;height:auto;object-fit:contain}
+.brand .tag{font-size:10px;color:#b9d3ea;line-height:1.25}
+.nav-section{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7397b7;padding:14px 12px 7px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;margin:3px 0;border-radius:9px;
+  color:#dbeafd;font-size:13px;transition:.18s ease;user-select:none
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:linear-gradient(90deg,#0785ff,#0a71d1);box-shadow:0 5px 14px rgba(0,132,255,.25);color:#fff}
+.nav-ico{width:20px;height:20px;border:1px solid rgba(255,255,255,.35);border-radius:5px;display:grid;place-items:center;font-size:11px}
+.main{min-width:0}
+.topbar{
+  height:64px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;position:sticky;top:0;z-index:20
+}
+.top-left{display:flex;align-items:center;gap:12px}
+.page-title{font-weight:750;font-size:20px}
+.prototype-badge{font-size:11px;background:#eef6ff;color:#0879df;border:1px solid #cfe7ff;padding:4px 8px;border-radius:999px}
+.top-right{display:flex;align-items:center;gap:14px}
+.clock{font-size:12px;color:var(--muted)}
+.user{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:10px;background:#f8fbfe;border:1px solid var(--border)}
+.avatar{width:31px;height:31px;border-radius:50%;background:linear-gradient(135deg,#0d8cff,#66c8ff);display:grid;place-items:center;color:#fff;font-weight:700}
+.user strong{display:block;font-size:12px}
+.user span{font-size:10px;color:var(--muted)}
+.content{padding:22px 24px 40px}
+.hero{
+  display:flex;justify-content:space-between;gap:20px;align-items:center;background:linear-gradient(135deg,#ffffff,#f2f8ff);
+  border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow)
+}
+.hero h2{margin:0 0 5px;font-size:21px}
+.hero p{margin:0;color:var(--muted);font-size:13px}
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;padding:9px 13px;font-weight:650;font-size:12px}
+.btn.primary{background:#0b84ff;color:#fff}
+.btn.secondary{background:#eef5fb;color:#1f5f96;border:1px solid #dbe9f5}
+.btn.success{background:#13b76a;color:white}
+.btn.danger{background:#ff4d5b;color:white}
+.btn.orange{background:#ff9f1c;color:white}
+.btn.ghost{background:white;color:#315c7f;border:1px solid var(--border)}
+.btn:active{transform:translateY(1px)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.stat{border-radius:13px;padding:16px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden;min-height:100px}
+.stat:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.12);right:-20px;bottom:-40px}
+.stat .label{font-size:11px;opacity:.9;margin-bottom:8px}
+.stat .value{font-size:22px;font-weight:800}
+.stat .note{font-size:10px;opacity:.82;margin-top:7px}
+.s-blue{background:linear-gradient(135deg,#0b84ff,#2aa0ff)}
+.s-green{background:linear-gradient(135deg,#11b767,#2ac98a)}
+.s-orange{background:linear-gradient(135deg,#ff9818,#ffb74b)}
+.s-purple{background:linear-gradient(135deg,#7257ff,#9a72ff)}
+.s-red{background:linear-gradient(135deg,#ff4d5b,#ff7a85)}
+.s-cyan{background:linear-gradient(135deg,#13afcd,#38cde8)}
+.s-navy{background:linear-gradient(135deg,#194d80,#2a6ca7)}
+.grid-3{display:grid;grid-template-columns:1.1fr 1.25fr .9fr;gap:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;border-bottom:1px solid var(--border)}
+.panel-title{font-size:13px;font-weight:750}
+.panel-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.panel-body{padding:14px 15px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{background:#f5f9fc;text-align:left;color:#526b81;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid #edf2f6;vertical-align:middle;white-space:nowrap}
+tr:hover td{background:#fafcfe}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700}
+.badge.green{background:#e7f9ef;color:#148c52}
+.badge.red{background:#ffecef;color:#d73544}
+.badge.orange{background:#fff3df;color:#c47707}
+.badge.blue{background:#e8f4ff;color:#1676c8}
+.badge.purple{background:#f0ebff;color:#6d4bd4}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.low td{background:#fff3f4}
+.low:hover td{background:#ffecef}
+.search-row{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search{flex:1;min-width:240px;display:flex;align-items:center;border:1px solid var(--border);border-radius:10px;background:#fff;padding:0 10px}
+.search input{width:100%;border:0;outline:none;padding:10px 6px;background:transparent;font-size:12px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.tab{border:1px solid var(--border);background:white;border-radius:999px;padding:7px 11px;font-size:11px;color:#48637a}
+.tab.active{background:#0b84ff;color:white;border-color:#0b84ff}
+.kpi-line{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #e4ebf1;font-size:11px}
+.kpi-line:last-child{border-bottom:0}
+.kpi-line strong{font-size:12px}
+.chart{height:180px;display:flex;align-items:flex-end;gap:12px;padding:10px 4px 2px;border-bottom:1px solid #e8eef4}
+.bar{flex:1;background:linear-gradient(180deg,#168cff,#52b4ff);border-radius:5px 5px 0 0;min-width:16px;position:relative}
+.bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:#748698}
+.pos-layout{display:grid;grid-template-columns:1fr min(340px,32vw);gap:14px;align-items:start}
+.pos-checkout{position:sticky;top:78px}
+.pos-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.pos-step{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:11px;background:#fff;border:1px solid var(--border);font-size:11px;color:var(--muted);font-weight:650}
+.pos-step.active{border-color:#9fcfff;background:#f0f8ff;color:#1c5f96}
+.pos-step.done{border-color:#b8e6cf;background:#f3fbf7;color:#148c52}
+.pos-step-num{width:22px;height:22px;border-radius:50%;background:#e8eef4;color:#607789;display:grid;place-items:center;font-size:10px;font-weight:800;flex-shrink:0}
+.pos-step.active .pos-step-num{background:#0b84ff;color:#fff}
+.pos-step.done .pos-step-num{background:#13b76a;color:#fff}
+.pos-search-hint{font-size:10px;color:var(--muted);margin:-4px 0 12px}
+.pos-cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pos-cat-tabs .tab{padding:6px 12px;font-size:10px}
+.cart-items{display:flex;flex-direction:column;gap:8px;max-height:min(42vh,320px);overflow-y:auto;margin-bottom:12px}
+.cart-item{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:10px 11px;border:1px solid var(--border);border-radius:10px;background:#fafcfe}
+.cart-item-name{font-size:12px;font-weight:700;line-height:1.3}
+.cart-item-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.cart-item-price{font-size:12px;font-weight:800;color:#0d639e;white-space:nowrap;text-align:right}
+.cart-item-remove{border:0;background:#ffecef;color:#d73544;width:26px;height:26px;border-radius:7px;font-size:11px;line-height:1}
+.qty-stepper{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+.qty-stepper button{border:0;background:#f0f5f9;color:#315c7f;width:26px;height:28px;font-size:14px;font-weight:700;line-height:1}
+.qty-stepper button:disabled{opacity:.4;cursor:not-allowed}
+.qty-stepper input{width:38px;border:0;border-left:1px solid var(--border);border-right:1px solid var(--border);text-align:center;font-size:12px;font-weight:700;padding:5px 2px;-moz-appearance:textfield}
+.qty-stepper input::-webkit-outer-spin-button,.qty-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qty-stepper input:disabled{background:#f5f8fb;color:#607789}
+.pos-sheet-list{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 220px);overflow-y:auto}
+.pos-sheet-row{display:flex;align-items:center;gap:10px;padding:10px 11px;border:1px solid var(--border);border-radius:10px;background:#fff}
+.pos-sheet-row:hover{border-color:#9fcfff;background:#fafcfe}
+.pos-sheet-row .product-icon{width:42px;height:42px;margin:0;flex-shrink:0;font-size:18px}
+.pos-sheet-row-main{flex:1;min-width:0}
+.pos-sheet-row-main strong{display:block;font-size:12px}
+.pos-sheet-row-main span{font-size:10px;color:var(--muted)}
+.pos-sheet-row .btn{padding:7px 11px;font-size:11px;flex-shrink:0}
+.cart-empty{text-align:center;padding:22px 12px;border:1px dashed var(--border);border-radius:11px;background:#fbfdff;color:var(--muted);font-size:12px}
+.cart-empty strong{display:block;color:var(--text);font-size:13px;margin-bottom:4px}
+.pos-checkout-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pos-checkout-head .count{font-size:11px;color:var(--muted)}
+.pos-item-badge{font-size:10px;background:#eef6ff;color:#0879df;padding:3px 8px;border-radius:999px;font-weight:700}
+.payment-row .pay{opacity:.92;transition:.15s ease;border:2px solid transparent}
+.payment-row .pay.active{border-color:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.12);transform:translateY(-1px)}
+.product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.product-card{border:1px solid var(--border);border-radius:11px;padding:12px;background:#fff;cursor:pointer;transition:.16s}
+.product-card:hover{border-color:#9fcfff;box-shadow:0 5px 14px rgba(11,132,255,.1);transform:translateY(-1px)}
+.product-icon{height:46px;border-radius:9px;background:#eef6fd;display:grid;place-items:center;font-size:22px;margin-bottom:8px}
+.product-card strong{font-size:11px;display:block}
+.product-card span{font-size:9px;color:var(--muted)}
+.cart-total{background:#f7fbff;border:1px solid #dbeaf6;border-radius:10px;padding:12px;margin-top:12px}
+.cart-line{display:flex;justify-content:space-between;font-size:11px;margin:6px 0}
+.cart-line.grand{font-size:15px;font-weight:800;color:#0d639e;border-top:1px solid #dce9f4;padding-top:9px;margin-top:9px}
+.payment-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.pay{border:0;border-radius:8px;padding:10px;color:#fff;font-weight:700;font-size:11px}
+.pay.cash{background:#13b76a}.pay.card{background:#0b84ff}.pay.bank{background:#ff9f1c}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.field label{display:block;font-size:10px;color:#607789;margin-bottom:5px;font-weight:650}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 10px;outline:none;background:#fff;font-size:12px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#87c3f7;box-shadow:0 0 0 3px rgba(11,132,255,.08)}
+.field.full{grid-column:1/-1}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-box{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fbfdff}
+.info-box h4{margin:0 0 8px;font-size:11px;color:#31536f}
+.info-row{display:flex;justify-content:space-between;font-size:10.5px;padding:4px 0}
+.timeline{display:flex;align-items:center;gap:0;margin:18px 0 4px}
+.step{flex:1;text-align:center;position:relative}
+.step:before{content:"";height:2px;background:#dce6ee;position:absolute;left:-50%;right:50%;top:9px;z-index:0}
+.step:first-child:before{display:none}
+.step .circle{width:19px;height:19px;border-radius:50%;background:#d7e5f1;margin:0 auto 5px;position:relative;z-index:1}
+.step.done .circle{background:#0b84ff;box-shadow:0 0 0 3px #e7f3ff}
+.step.done:before{background:#0b84ff}
+.step span{font-size:9px;color:#6f8193}
+.alert{border-radius:10px;padding:11px 12px;font-size:11px;border:1px solid}
+.alert.red{background:#fff0f2;border-color:#ffcbd1;color:#bf3141}
+.alert.orange{background:#fff6e7;border-color:#ffdba5;color:#a86405}
+.alert.blue{background:#eef7ff;border-color:#cce6ff;color:#1c6ba6}
+.empty{padding:30px;text-align:center;color:#7b8d9e;font-size:12px}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick .q{border:1px solid var(--border);background:#fff;border-radius:10px;text-align:center;padding:14px 8px;font-size:10px;color:#43627c}
+.quick .q b{font-size:20px;display:block;margin-bottom:6px}
+.action-link{color:#0b84ff;font-size:10px;font-weight:700;cursor:pointer}
+.action-link.danger{color:#dc3b4b}
+.modal-backdrop{position:fixed;inset:0;background:rgba(8,24,39,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-backdrop.show{display:flex}
+.modal{width:min(760px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.modal.small{width:min(520px,96vw)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid var(--border)}
+.modal-head h3{font-size:14px;margin:0}
+.close{border:0;background:#f0f5f9;color:#607789;width:29px;height:29px;border-radius:8px}
+.modal-body{padding:18px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:13px 18px;border-top:1px solid var(--border)}
+.sheet-backdrop{position:fixed;inset:0;background:rgba(8,24,39,.4);display:none;z-index:110;opacity:0;transition:opacity .25s ease}
+.sheet-backdrop.show{display:block;opacity:1}
+.sheet{
+  position:fixed;top:0;right:0;width:min(540px,100vw);height:100vh;background:#fff;
+  box-shadow:-16px 0 48px rgba(0,0,0,.18);display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:111
+}
+.sheet-backdrop.show .sheet{transform:translateX(0)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sheet-head h3{font-size:15px;margin:0;font-weight:750}
+.sheet-body{padding:20px;overflow-y:auto;flex:1}
+.sheet-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0;background:#fafcfe}
+.toast{position:fixed;right:22px;bottom:22px;background:#17324a;color:#fff;padding:11px 14px;border-radius:10px;font-size:11px;box-shadow:0 8px 30px rgba(0,0,0,.18);transform:translateY(15px);opacity:0;pointer-events:none;transition:.2s;z-index:200}
+.toast.show{opacity:1;transform:translateY(0)}
+.qr{display:grid;grid-template-columns:repeat(13,8px);grid-template-rows:repeat(13,8px);gap:1px;background:#fff;border:8px solid #fff;box-shadow:0 0 0 1px #ddd;width:max-content}
+.qr i{width:8px;height:8px;background:#fff}
+.qr i.on{background:#111}
+.report-head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.report-head h3{margin:0 0 4px;font-size:18px;color:#07345e}
+.report-head p{margin:1px 0;color:#698096;font-size:10px}
+.mobile-toggle{display:none;border:0;background:#eef5fb;border-radius:8px;width:34px;height:34px}
+@media(max-width:1050px){
+  .app{grid-template-columns:205px 1fr}.cards{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:1fr}.pos-layout{grid-template-columns:1fr}.pos-checkout{position:static}
+  .product-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:780px){
+  .app{display:block}.sidebar{position:fixed;left:-255px;z-index:50;width:240px;transition:.2s}.sidebar.open{left:0}
+  .mobile-toggle{display:block}.cards{grid-template-columns:1fr 1fr}.content{padding:16px}.topbar{padding:0 14px}
+  .clock{display:none}.page-title{font-size:16px}.hero{align-items:flex-start;flex-direction:column}
+  .grid-2,.detail-grid,.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.product-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media print{
+  .sidebar,.topbar,.hero-actions,.no-print,.prototype-badge,.sheet-backdrop{display:none!important}
+  .app{display:block}.content{padding:0}.panel{box-shadow:none;border:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="data:image/png;base64,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" alt="A&Z Consultants">
+      <div class="tag">IT Solutions & Computer Shop</div>
+    </div>
+
+    <div class="nav-item active" data-page="dashboard"><span class="nav-ico">⌂</span>Dashboard</div>
+    <div class="nav-item" data-page="pos"><span class="nav-ico">▣</span>POS / Sales</div>
+    <div class="nav-item" data-page="quotations"><span class="nav-ico">Q</span>Quotations</div>
+    <div class="nav-item" data-page="customers"><span class="nav-ico">C</span>Customers</div>
+    <div class="nav-section">Stock & Purchasing</div>
+    <div class="nav-item" data-page="products"><span class="nav-ico">P</span>Products</div>
+    <div class="nav-item" data-page="inventory"><span class="nav-ico">I</span>Inventory</div>
+    <div class="nav-item" data-page="purchases"><span class="nav-ico">PO</span>Purchases</div>
+    <div class="nav-item" data-page="suppliers"><span class="nav-ico">S</span>Suppliers</div>
+    <div class="nav-section">Service</div>
+    <div class="nav-item" data-page="repairs"><span class="nav-ico">R</span>Repair Center</div>
+    <div class="nav-item" data-page="warranty"><span class="nav-ico">W</span>Warranty / RMA</div>
+    <div class="nav-item" data-page="projects"><span class="nav-ico">PR</span>Projects</div>
+    <div class="nav-section">Finance & Admin</div>
+    <div class="nav-item" data-page="accounts"><span class="nav-ico">A</span>Accounts</div>
+    <div class="nav-item" data-page="reports"><span class="nav-ico">RP</span>Reports</div>
+    <div class="nav-item" data-page="users"><span class="nav-ico">U</span>Users & Permissions</div>
+    <div class="nav-item" data-page="audit"><span class="nav-ico">L</span>Login & Audit Logs</div>
+    <div class="nav-item" data-page="settings"><span class="nav-ico">⚙</span>Settings</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="page-title" id="pageTitle">Dashboard</div>
+        </div>
+        <span class="prototype-badge">Interactive Prototype</span>
+      </div>
+      <div class="top-right">
+        <div class="clock" id="clock"></div>
+        <div class="user" onclick="showUserMenu()" style="cursor:pointer">
+          <div class="avatar">AS</div>
+          <div><strong>Admin</strong><span>Super Admin · Google Login</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content" id="content"></section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal">
+    <div class="modal-head"><h3 id="modalTitle">Modal</h3><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet" id="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-head"><h3 id="sheetTitle">Form</h3><button class="close" onclick="closeSheet()">✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast">Done</div>
+
+<script>
+const state = {
+  cart:[
+    {name:"Dell Latitude 5420", model:"5420", serial:"DL5420-004", qty:1, price:85000},
+    {name:"Logitech M331 Mouse", model:"M331", serial:"-", qty:1, price:2500},
+    {name:"Kingston SSD 512GB", model:"NV2", serial:"SSD512-019", qty:1, price:12000}
+  ],
+  serials:new Set(["DL5420-001","DL5420-002","DL5420-003","DL5420-004","SSD512-019","HP15-011","CAM-TPL-019"]),
+  products:[
+    {name:"Dell Latitude 5420",brand:"Dell",model:"5420",stock:4,min:5,price:85000,barcode:"896400120001",serial:true,cat:"Laptops"},
+    {name:"HP Laptop 15s",brand:"HP",model:"15s-fq5",stock:8,min:5,price:72000,barcode:"896400120002",serial:true,cat:"Laptops"},
+    {name:"Samsung Monitor 24”",brand:"Samsung",model:"S24",stock:12,min:5,price:18500,barcode:"896400120003",serial:true,cat:"Monitors"},
+    {name:"TP-Link Router",brand:"TP-Link",model:"Archer C6",stock:20,min:10,price:8500,barcode:"896400120004",serial:true,cat:"Networking"},
+    {name:"Kingston SSD 512GB",brand:"Kingston",model:"NV2",stock:4,min:10,price:12000,barcode:"896400120005",serial:true,cat:"Storage"},
+    {name:"Logitech M331 Mouse",brand:"Logitech",model:"M331",stock:15,min:10,price:2500,barcode:"896400120006",serial:false,cat:"Accessories"},
+    {name:"Cat6 LAN Cable Box",brand:"D-Link",model:"Cat6",stock:3,min:5,price:27000,barcode:"896400120007",serial:false,cat:"Networking"},
+    {name:"CCTV Camera 4MP",brand:"TP-Link",model:"VIGI",stock:7,min:10,price:14500,barcode:"896400120008",serial:true,cat:"CCTV"}
+  ],
+  pos:{pay:"Cash",cat:"All",search:""}
+};
+
+const pages = {};
+
+function money(n){return "Rs. " + Number(n).toLocaleString("en-PK")}
+function badge(text,type="blue"){return `<span class="badge ${type}"><span class="dot"></span>${text}</span>`}
+
+function dashboard(){
+return `
+<div class="hero">
+  <div><h2>Welcome to A&Z Consultants</h2><p>Your trusted IT solution partner — sales, inventory, repairs, projects and accounts in one system.</p></div>
+  <div class="hero-actions">
+    <button class="btn primary" onclick="go('pos')">+ New Sale</button>
+    <button class="btn secondary" onclick="openAddProduct()">+ Add Product</button>
+    <button class="btn success" onclick="go('repairs')">+ Repair Ticket</button>
+  </div>
+</div>
+<div class="cards">
+  <div class="stat s-blue"><div class="label">Today's Sales</div><div class="value">Rs. 125,000</div><div class="note">6 completed invoices</div></div>
+  <div class="stat s-green"><div class="label">Today's Profit</div><div class="value">Rs. 28,500</div><div class="note">Gross profit estimate</div></div>
+  <div class="stat s-orange"><div class="label">Total Stock Value</div><div class="value">Rs. 24,50,000</div><div class="note">Current inventory valuation</div></div>
+  <div class="stat s-purple"><div class="label">Total in Hand</div><div class="value">Rs. 78,900</div><div class="note">Cash + bank receipts today</div></div>
+  <div class="stat s-red"><div class="label">Customer Receivable</div><div class="value">Rs. 42,000</div><div class="note">Outstanding from customers</div></div>
+  <div class="stat s-cyan"><div class="label">Supplier Payable</div><div class="value">Rs. 66,000</div><div class="note">Outstanding supplier balance</div></div>
+  <div class="stat s-navy"><div class="label">Pending Repairs</div><div class="value">5</div><div class="note">2 awaiting customer approval</div></div>
+  <div class="stat s-green"><div class="label">Ready Repairs</div><div class="value">3</div><div class="note">Ready for delivery</div></div>
+</div>
+<div class="grid-3">
+  <div class="panel">
+    <div class="panel-head"><div><div class="panel-title">Low Stock Products</div><div class="panel-sub">Red alert when stock reaches product threshold</div></div><span class="badge red">${state.products.filter(p=>p.stock<=p.min).length} Alerts</span></div>
+    <div class="panel-body">
+      ${state.products.filter(p=>p.stock<=p.min).slice(0,6).map(p=>`<div class="kpi-line"><span>${p.name}<br><small style="color:#8798a8">${p.cat}</small></span><strong style="color:#d73544">${p.stock} / ${p.min}</strong></div>`).join("")}
+      <div style="text-align:right;margin-top:9px"><span class="action-link" onclick="go('inventory')">View All →</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><div><div class="panel-title">Recent Sales</div><div class="panel-sub">Latest invoices and payments</div></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Payment</th></tr></thead>
+      <tbody>
+        <tr><td>INV-0045</td><td>Ali Khan</td><td>Rs. 44,000</td><td>${badge("Cash","green")}</td></tr>
+        <tr><td>INV-0044</td><td>Bilal Ahmed</td><td>Rs. 32,000</td><td>${badge("Bank","orange")}</td></tr>
+        <tr><td>INV-0043</td><td>Sana Javed</td><td>Rs. 72,000</td><td>${badge("Card","blue")}</td></tr>
+        <tr><td>INV-0042</td><td>Usman Q.</td><td>Rs. 15,500</td><td>${badge("Cash","green")}</td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><div><div class="panel-title">Monthly Sales</div><div class="panel-sub">January–June 2026</div></div></div>
+    <div class="panel-body"><div class="chart">
+      <div class="bar" style="height:42%"><span>Jan</span></div><div class="bar" style="height:58%"><span>Feb</span></div>
+      <div class="bar" style="height:50%"><span>Mar</span></div><div class="bar" style="height:82%"><span>Apr</span></div>
+      <div class="bar" style="height:70%"><span>May</span></div><div class="bar" style="height:94%"><span>Jun</span></div>
+    </div></div>
+  </div>
+</div>`;
+}
+
+function posCatList(){return ["All",...new Set(state.products.map(p=>p.cat))]}
+function posProductIcon(p,i){
+ const m={Laptops:"💻",Monitors:"🖥",Networking:"📡",Storage:"💾",Accessories:"🖱",CCTV:"📷"};
+ return m[p.cat]||["💻","🖥","📡","💾","🖱","🔌","📷","📦"][i%8];
+}
+function posFilteredProducts(){
+ const cat=state.pos.cat||"All";
+ const q=(state.pos.search||"").trim().toLowerCase();
+ return state.products.map((p,i)=>({p,i})).filter(({p})=>{
+  if(cat!=="All"&&p.cat!==cat)return false;
+  if(!q)return true;
+  return p.name.toLowerCase().includes(q)||p.barcode.includes(q)||p.model.toLowerCase().includes(q);
+ });
+}
+function posSteps(){
+ const n=state.cart.length;
+ return `<div class="pos-steps">
+  <div class="pos-step ${n?"done":"active"}"><span class="pos-step-num">1</span> Add items</div>
+  <div class="pos-step ${n?"active":""}"><span class="pos-step-num">2</span> Review & pay</div>
+  <div class="pos-step"><span class="pos-step-num">3</span> Complete</div>
+</div>`;
+}
+function pos(){
+ const pay=state.pos.pay||"Cash";
+ const items=state.cart.length;
+ const filtered=posFilteredProducts();
+ return `
+${posSteps()}
+<div class="pos-layout">
+  <div class="panel">
+    <div class="panel-head"><div><div class="panel-title">Add products</div><div class="panel-sub">Tap a product or scan / search by barcode</div></div>
+      <button class="btn primary" type="button" onclick="openPosAddItem()">+ Add Item</button>
+    </div>
+    <div class="panel-body">
+      <div class="search-row" style="margin-bottom:0">
+        <div class="search"><span>⌕</span><input id="posSearch" placeholder="Scan barcode or type product name…" value="${(state.pos.search||"").replace(/"/g,"&quot;")}" oninput="state.pos.search=this.value" onkeydown="if(event.key==='Enter'){simulateSearch();event.preventDefault()}"></div>
+        <button class="btn primary" type="button" onclick="simulateSearch()">Add</button>
+      </div>
+      <p class="pos-search-hint">Press <b>Enter</b> or <b>Add</b> after scan. Demo: <span class="action-link" onclick="simulateScan()">simulate barcode scan</span></p>
+      <div class="pos-cat-tabs">${posCatList().map(c=>`<button type="button" class="tab ${state.pos.cat===c?"active":""}" onclick="filterPosCat('${c.replace(/'/g,"\\'")}')">${c}</button>`).join("")}</div>
+      <div class="product-grid">
+        ${filtered.length?filtered.map(({p,i})=>`<div class="product-card" onclick="addProduct(${i})" role="button" tabindex="0"><div class="product-icon">${posProductIcon(p,i)}</div><strong>${p.name}</strong><span>${money(p.price)} · Stock ${p.stock}</span></div>`).join(""):`<div class="empty" style="grid-column:1/-1">No products match. Clear search or pick another category.</div>`}
+      </div>
+    </div>
+  </div>
+  <div class="panel pos-checkout">
+    <div class="panel-head"><div><div class="panel-title">Current sale</div><div class="panel-sub">Step 2 — confirm cart & payment</div></div></div>
+    <div class="panel-body">
+      <div class="pos-checkout-head"><span class="count">${items} item${items===1?"":"s"} in cart</span>${items?`<span class="pos-item-badge">${money(cartTotal())}</span>`:""}</div>
+      ${cartListItems()}
+      <div class="field"><label>Customer</label><select><option>Walk-in Customer</option><option>Ali Khan</option><option>Sana Javed</option><option>ABC School Gilgit</option></select></div>
+      <div class="cart-total">
+        <div class="cart-line"><span>Subtotal</span><strong id="subtotal">${money(cartTotal())}</strong></div>
+        <div class="cart-line grand"><span>Total to pay</span><span id="grandTotal">${money(cartTotal())}</span></div>
+      </div>
+      <label style="display:block;font-size:10px;color:#607789;margin:12px 0 6px;font-weight:650">Payment method</label>
+      <div class="payment-row"><button type="button" class="pay cash ${pay==="Cash"?"active":""}" onclick="selectPay('Cash')">Cash</button><button type="button" class="pay card ${pay==="Card"?"active":""}" onclick="selectPay('Card')">Card</button><button type="button" class="pay bank ${pay==="Bank"?"active":""}" onclick="selectPay('Bank')">Bank</button></div>
+      <button class="btn success" type="button" style="width:100%;margin-top:12px;padding:13px;font-size:13px${items?"":";opacity:.55;cursor:not-allowed"}" onclick="completeSale()" ${items?"":"disabled"}>Complete sale · ${money(cartTotal())}</button>
+    </div>
+  </div>
+</div>`;
+}
+function cartListItems(){
+ if(!state.cart.length){
+  return `<div class="cart-empty"><div style="font-size:26px;margin-bottom:6px">🛒</div><strong>No items yet</strong><p>Tap a product, use <b>+ Add Item</b>, or scan a barcode to begin.</p></div>`;
+ }
+ return `<div class="cart-items">${state.cart.map((x,i)=>{const serial=x.serial&&x.serial!=="-";const max=Math.max(1,cartLineMaxQty(x));return `<div class="cart-item"><div><div class="cart-item-name">${x.name}</div><div class="cart-item-meta">${money(x.price)} each${serial?" · S/N "+x.serial:""}</div></div><div class="qty-stepper"><button type="button" ${serial||x.qty<=1?"disabled":""} onclick="changeCartQty(${i},-1)">−</button><input type="number" min="1" max="${max}" value="${x.qty}" ${serial?"disabled":""} onchange="setCartQty(${i},this.value)" aria-label="Quantity"><button type="button" ${serial||x.qty>=max?"disabled":""} onclick="changeCartQty(${i},1)">+</button></div><div class="cart-item-price">${money(x.price*x.qty)}</div><button type="button" class="cart-item-remove" onclick="removeCart(${i})" aria-label="Remove">✕</button></div>`}).join("")}</div>`;
+}
+function cartLineMaxQty(line){
+ const p=state.products.find(pr=>pr.name===line.name&&pr.model===line.model);
+ return p?p.stock:999;
+}
+function cartLineIsSerial(line){return !!(line.serial&&line.serial!=="-")}
+function setCartQty(i,val){
+ const line=state.cart[i]; if(!line||cartLineIsSerial(line))return;
+ const max=cartLineMaxQty(line);
+ line.qty=Math.max(1,Math.min(max,Math.floor(Number(val)||1)));
+ go("pos");
+}
+function changeCartQty(i,delta){
+ const line=state.cart[i]; if(!line||cartLineIsSerial(line))return;
+ setCartQty(i,line.qty+delta);
+}
+function cartTotal(){return state.cart.reduce((s,x)=>s+x.qty*x.price,0)}
+function filterPosCat(cat){state.pos.cat=cat;go("pos")}
+function posSyncSearch(){const el=document.getElementById("posSearch");if(el)state.pos.search=el.value}
+
+function products(){
+return `
+<div class="hero">
+  <div><h2>Products</h2><p>Manage products, barcodes, QR codes, serial tracking, prices and stock thresholds.</p></div>
+  <div class="hero-actions"><button class="btn primary" onclick="openAddProduct()">+ Add Product</button><button class="btn secondary" onclick="openQR()">▦ Generate QR</button></div>
+</div>
+<div class="panel">
+  <div class="panel-body">
+    <div class="search-row"><div class="search"><span>⌕</span><input placeholder="Search by name, model, barcode or serial..."></div><select class="btn ghost"><option>All Categories</option><option>Laptops</option><option>Networking</option><option>Storage</option></select></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Product</th><th>Brand</th><th>Model</th><th>Barcode</th><th>Stock</th><th>Min</th><th>Serial</th><th>Price</th><th>Action</th></tr></thead>
+    <tbody>${state.products.map((p,i)=>`<tr class="${p.stock<=p.min?'low':''}"><td><b>${p.name}</b></td><td>${p.brand}</td><td>${p.model}</td><td>${p.barcode}</td><td><b style="${p.stock<=p.min?'color:#d73544':''}">${p.stock}</b></td><td>${p.min}</td><td>${p.serial?badge("Enabled","blue"):badge("No","green")}</td><td>${money(p.price)}</td><td><span class="action-link" onclick="viewProduct(${i})">View</span> &nbsp; <span class="action-link" onclick="openEditProduct(${i})">Edit</span> &nbsp; <span class="action-link" onclick="openQR(${i})">QR</span></td></tr>`).join("")}</tbody>
+  </table></div>
+</div>`;
+}
+
+function inventory(){
+return `
+<div class="hero">
+ <div><h2>Inventory</h2><p>Every stock increase or decrease is recorded. Low stock rows are shown in red.</p></div>
+ <div class="hero-actions"><button class="btn secondary" onclick="openStockAdjustment()">Stock Adjustment</button><button class="btn primary" onclick="openSerialLookup()">Serial Lookup</button></div>
+</div>
+<div class="cards">
+ <div class="stat s-blue"><div class="label">Products</div><div class="value">86</div><div class="note">Across 12 categories</div></div>
+ <div class="stat s-orange"><div class="label">Stock Value</div><div class="value">Rs. 24.5L</div><div class="note">Estimated purchase value</div></div>
+ <div class="stat s-red"><div class="label">Low Stock</div><div class="value">${state.products.filter(p=>p.stock<=p.min).length}</div><div class="note">Needs restocking</div></div>
+ <div class="stat s-green"><div class="label">Serialized Units</div><div class="value">143</div><div class="note">Tracked individually</div></div>
+</div>
+<div class="panel">
+ <div class="panel-head"><div><div class="panel-title">Current Stock</div><div class="panel-sub">Threshold can be different for each product</div></div></div>
+ <div class="table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Available</th><th>Minimum</th><th>Status</th><th>Last Movement</th></tr></thead>
+ <tbody>${state.products.map(p=>`<tr class="${p.stock<=p.min?'low':''}"><td><b>${p.name}</b></td><td>${p.cat}</td><td>${p.stock}</td><td>${p.min}</td><td>${p.stock<=p.min?badge("Low Stock","red"):badge("Healthy","green")}</td><td>27 Sep 2026, 11:20 AM</td></tr>`).join("")}</tbody>
+ </table></div>
+</div>`;
+}
+
+function customers(){
+return `
+<div class="hero">
+ <div><h2>Customers</h2><p>View purchases, payments, repairs, quotations and complete downloadable statements.</p></div>
+ <div class="hero-actions"><button class="btn primary" onclick="openAddCustomer()">+ Add Customer</button></div>
+</div>
+<div class="panel">
+ <div class="panel-body"><div class="search-row"><div class="search"><span>⌕</span><input placeholder="Search by name, phone, CNIC or organization..."></div></div></div>
+ <div class="table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Total Purchases</th><th>Balance</th><th>Actions</th></tr></thead>
+ <tbody>
+  <tr><td><b>Ali Khan</b></td><td>0315-1234567</td><td>ali@gmail.com</td><td>Rs. 280,000</td><td style="color:#d73544">Rs. 12,000</td><td><span class="action-link" onclick="openEditCustomer('Ali Khan','0315-1234567','ali@gmail.com')">Edit</span> &nbsp; <span class="action-link" onclick="customerStatement('Ali Khan')">View / Download</span></td></tr>
+  <tr><td><b>Sana Javed</b></td><td>0333-7778899</td><td>sana@gmail.com</td><td>Rs. 103,500</td><td>Rs. 0</td><td><span class="action-link" onclick="customerStatement('Sana Javed')">View / Download</span></td></tr>
+  <tr><td><b>Bilal Ahmed</b></td><td>0300-1112222</td><td>bilal@abc.com</td><td>Rs. 80,000</td><td>Rs. 5,000</td><td><span class="action-link" onclick="customerStatement('Bilal Ahmed')">View / Download</span></td></tr>
+  <tr><td><b>ABC School Gilgit</b></td><td>05811-555111</td><td>admin@abcschool.edu.pk</td><td>Rs. 1,850,000</td><td style="color:#d73544">Rs. 250,000</td><td><span class="action-link" onclick="customerStatement('ABC School Gilgit')">View / Download</span></td></tr>
+ </tbody></table></div>
+</div>`;
+}
+
+function quotations(){
+return `
+<div class="hero"><div><h2>Quotations</h2><p>Create product or project quotations and convert approved quotations into sales or projects.</p></div><div class="hero-actions"><button class="btn primary" onclick="openNewQuotation()">+ New Quotation</button></div></div>
+<div class="cards">
+ <div class="stat s-orange"><div class="label">Pending</div><div class="value">5</div><div class="note">Waiting for client decision</div></div>
+ <div class="stat s-green"><div class="label">Approved</div><div class="value">8</div><div class="note">This month</div></div>
+ <div class="stat s-blue"><div class="label">Sent</div><div class="value">12</div><div class="note">Awaiting response</div></div>
+ <div class="stat s-purple"><div class="label">Quoted Value</div><div class="value">Rs. 28.4L</div><div class="note">Current open quotations</div></div>
+</div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Title</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
+<tr><td>Q-0001</td><td>Ali Khan</td><td>Laptop + SSD</td><td>Rs. 95,000</td><td>20 Jun 2026</td><td>${badge("Pending","orange")}</td><td><span class="action-link">Open</span></td></tr>
+<tr><td>Q-0002</td><td>ABC School</td><td>Computer Lab Installation</td><td>Rs. 1,260,000</td><td>18 Jun 2026</td><td>${badge("Approved","green")}</td><td><span class="action-link" onclick="go('projects')">Convert to Project</span></td></tr>
+<tr><td>Q-0003</td><td>Government Office</td><td>CCTV Installation</td><td>Rs. 750,000</td><td>15 Jun 2026</td><td>${badge("Sent","blue")}</td><td><span class="action-link">Open</span></td></tr>
+</tbody></table></div></div>`;
+}
+
+function purchases(){
+return `
+<div class="hero"><div><h2>Purchases</h2><p>Receive stock from suppliers, capture serial numbers and update supplier balances automatically.</p></div><div class="hero-actions"><button class="btn primary" onclick="openPurchase()">+ New Purchase</button></div></div>
+<div class="alert blue" style="margin-bottom:14px"><b>Important:</b> for serialized products, every serial number is checked against the whole system before purchase is posted.</div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Purchase #</th><th>Supplier</th><th>Items</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th><th>Status</th></tr></thead><tbody>
+<tr><td>PUR-0062</td><td>Tech World</td><td>8</td><td>Rs. 540,000</td><td>Rs. 400,000</td><td>Rs. 140,000</td><td>27 Sep 2026</td><td>${badge("Received","green")}</td></tr>
+<tr><td>PUR-0061</td><td>Galaxy IT</td><td>12</td><td>Rs. 122,000</td><td>Rs. 122,000</td><td>Rs. 0</td><td>24 Sep 2026</td><td>${badge("Paid","blue")}</td></tr>
+<tr><td>PUR-0060</td><td>Future Tech</td><td>5</td><td>Rs. 310,000</td><td>Rs. 150,000</td><td>Rs. 160,000</td><td>21 Sep 2026</td><td>${badge("Partial","orange")}</td></tr>
+</tbody></table></div></div>`;
+}
+
+function suppliers(){
+return `
+<div class="hero"><div><h2>Suppliers</h2><p>Track supplier purchases, payments, outstanding balances and warranty/RMA history.</p></div><div class="hero-actions"><button class="btn primary" onclick="openAddSupplier()">+ Add Supplier</button></div></div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Phone</th><th>Email</th><th>Total Purchases</th><th>Balance</th><th>Action</th></tr></thead><tbody>
+<tr><td><b>Tech World</b></td><td>0715-426866</td><td>tech@world.com</td><td>Rs. 850,000</td><td>Rs. 12,000</td><td><span class="action-link">View Ledger</span></td></tr>
+<tr><td><b>Galaxy IT</b></td><td>0309-998868</td><td>galaxy@it.com</td><td>Rs. 120,000</td><td>Rs. 45,000</td><td><span class="action-link">View Ledger</span></td></tr>
+<tr><td><b>Future Tech</b></td><td>0306-777722</td><td>future@tech.com</td><td>Rs. 310,000</td><td>Rs. 0</td><td><span class="action-link">View Ledger</span></td></tr>
+</tbody></table></div></div>`;
+}
+
+function repairs(){
+return `
+<div class="hero"><div><h2>Repair Center</h2><p>Track devices from receiving and diagnosis to repair, testing, payment and delivery.</p></div><div class="hero-actions"><button class="btn primary" onclick="openRepair()">+ New Repair Ticket</button></div></div>
+<div class="tabs"><button class="tab active">New Ticket</button><button class="tab">In Progress</button><button class="tab">Ready</button><button class="tab">Delivered</button><button class="tab">All</button></div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Problem</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+<tr><td>RT-0001</td><td>Ali Khan</td><td>Dell Laptop</td><td>Not turning on</td><td>${badge("Received","green")}</td><td>24 Sep 2026</td><td><span class="action-link" onclick="repairDetail()">View</span></td></tr>
+<tr><td>RT-0002</td><td>Sana Javed</td><td>Desktop PC</td><td>Restarting</td><td>${badge("Checking","orange")}</td><td>24 Sep 2026</td><td><span class="action-link" onclick="repairDetail()">View</span></td></tr>
+<tr><td>RT-0003</td><td>Bilal Ahmed</td><td>HP Laptop</td><td>Slow / SSD issue</td><td>${badge("Repairing","purple")}</td><td>23 Sep 2026</td><td><span class="action-link" onclick="repairDetail()">View</span></td></tr>
+<tr><td>RT-0004</td><td>Usman Q.</td><td>Printer</td><td>Paper jam</td><td>${badge("Waiting Parts","orange")}</td><td>21 Sep 2026</td><td><span class="action-link" onclick="repairDetail()">View</span></td></tr>
+<tr><td>RT-0005</td><td>Faiza Noor</td><td>Laptop</td><td>Keyboard replacement</td><td>${badge("Ready","green")}</td><td>20 Sep 2026</td><td><span class="action-link" onclick="repairDetail()">View</span></td></tr>
+</tbody></table></div></div>`;
+}
+
+function warranty(){
+return `
+<div class="hero"><div><h2>Warranty / RMA</h2><p>Search by serial number to see invoice, customer, warranty period and supplier return status.</p></div><div class="hero-actions"><button class="btn primary" onclick="openWarrantyClaim()">+ Add Warranty Claim</button></div></div>
+<div class="panel"><div class="panel-body"><div class="search-row"><div class="search"><span>⌕</span><input placeholder="Search serial number, bill number or customer..."></div></div></div>
+<div class="table-wrap"><table><thead><tr><th>Product</th><th>Serial</th><th>Customer</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead><tbody>
+<tr><td>Dell Latitude 5420</td><td>DL5420-002</td><td>Ali Khan</td><td>12 Jan 2026</td><td>12 Jan 2027</td><td>${badge("Active","green")}</td></tr>
+<tr><td>HP Laptop 15s</td><td>HP15-011</td><td>Sana Javed</td><td>05 Feb 2026</td><td>05 Feb 2027</td><td>${badge("Active","green")}</td></tr>
+<tr><td>CCTV Camera 4MP</td><td>CAM-TPL-019</td><td>ABC School</td><td>01 Apr 2026</td><td>01 Apr 2027</td><td>${badge("Supplier RMA","orange")}</td></tr>
+</tbody></table></div></div>`;
+}
+
+function projects(){
+return `
+<div class="hero"><div><h2>Projects / Installations</h2><p>Manage CCTV, computer-lab, networking and other client installation work from quotation to completion.</p></div><div class="hero-actions"><button class="btn primary" onclick="openNewProject()">+ New Project</button></div></div>
+<div class="cards">
+ <div class="stat s-blue"><div class="label">Active Projects</div><div class="value">4</div><div class="note">Currently in progress</div></div>
+ <div class="stat s-orange"><div class="label">Project Value</div><div class="value">Rs. 36.2L</div><div class="note">Active contract value</div></div>
+ <div class="stat s-green"><div class="label">Estimated Profit</div><div class="value">Rs. 6.8L</div><div class="note">After materials and expenses</div></div>
+ <div class="stat s-purple"><div class="label">Materials Issued</div><div class="value">Rs. 18.1L</div><div class="note">From current inventory</div></div>
+</div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Project</th><th>Client</th><th>Type</th><th>Value</th><th>Cost</th><th>Status</th><th>Progress</th></tr></thead><tbody>
+<tr><td>PRJ-0045</td><td>ABC School</td><td>Computer Lab</td><td>Rs. 1,260,000</td><td>Rs. 980,000</td><td>${badge("Installation","blue")}</td><td>70%</td></tr>
+<tr><td>PRJ-0044</td><td>Govt. Office</td><td>CCTV</td><td>Rs. 850,000</td><td>Rs. 660,000</td><td>${badge("Testing","orange")}</td><td>90%</td></tr>
+<tr><td>PRJ-0043</td><td>NGO Office</td><td>Networking</td><td>Rs. 430,000</td><td>Rs. 325,000</td><td>${badge("Planning","purple")}</td><td>25%</td></tr>
+</tbody></table></div></div>`;
+}
+
+function accounts(){
+return `
+<div class="hero"><div><h2>Accounts</h2><p>Simple operational accounts for cash, banks, receivables, payables, expenses and daily closing.</p></div><div class="hero-actions"><button class="btn primary" onclick="openCashClose()">Daily Cash Closing</button><button class="btn secondary" onclick="openAddExpense()">+ Add Expense</button></div></div>
+<div class="cards">
+ <div class="stat s-green"><div class="label">Cash in Hand</div><div class="value">Rs. 78,900</div><div class="note">As of today</div></div>
+ <div class="stat s-blue"><div class="label">Bank Balance</div><div class="value">Rs. 5,40,000</div><div class="note">All linked accounts</div></div>
+ <div class="stat s-red"><div class="label">Receivables</div><div class="value">Rs. 4,20,000</div><div class="note">Customers owe A&Z</div></div>
+ <div class="stat s-orange"><div class="label">Payables</div><div class="value">Rs. 6,60,000</div><div class="note">A&Z owes suppliers</div></div>
+</div>
+<div class="grid-2">
+ <div class="panel"><div class="panel-head"><div class="panel-title">Recent Transactions</div></div><div class="table-wrap"><table><thead><tr><th>Type</th><th>Reference</th><th>Amount</th><th>Method</th></tr></thead><tbody>
+ <tr><td>Sale Payment</td><td>INV-0045</td><td style="color:#148c52">+ Rs. 44,000</td><td>Cash</td></tr>
+ <tr><td>Supplier Payment</td><td>PAY-082</td><td style="color:#d73544">- Rs. 55,000</td><td>Bank</td></tr>
+ <tr><td>Expense</td><td>EXP-129</td><td style="color:#d73544">- Rs. 3,500</td><td>Cash</td></tr>
+ </tbody></table></div></div>
+ <div class="panel"><div class="panel-head"><div class="panel-title">Today's Cash Position</div></div><div class="panel-body">
+ <div class="kpi-line"><span>Opening Cash</span><strong>Rs. 50,000</strong></div><div class="kpi-line"><span>Cash Sales</span><strong style="color:#148c52">+ Rs. 180,000</strong></div>
+ <div class="kpi-line"><span>Collections</span><strong style="color:#148c52">+ Rs. 50,000</strong></div><div class="kpi-line"><span>Expenses</span><strong style="color:#d73544">- Rs. 15,000</strong></div>
+ <div class="kpi-line"><span>Expected Closing</span><strong>Rs. 265,000</strong></div>
+ </div></div>
+</div>`;
+}
+
+function reports(){
+return `
+<div class="hero"><div><h2>Reports</h2><p>Download operational reports for sales, purchases, inventory, accounts, customers, repairs and projects.</p></div><div class="hero-actions"><button class="btn primary" onclick="generateMockReport('summary')">Generate Report</button></div></div>
+<div class="cards">
+ <div class="stat s-blue"><div class="label">Total Sales</div><div class="value">Rs. 250,000</div><div class="note">Selected date range</div></div>
+ <div class="stat s-green"><div class="label">Total Purchases</div><div class="value">Rs. 980,000</div><div class="note">Selected date range</div></div>
+ <div class="stat s-cyan"><div class="label">Total Profit</div><div class="value">Rs. 270,000</div><div class="note">Gross estimate</div></div>
+ <div class="stat s-red"><div class="label">Total Expenses</div><div class="value">Rs. 85,000</div><div class="note">Recorded expenses</div></div>
+</div>
+<div class="panel"><div class="panel-head"><div><div class="panel-title">Report Center</div><div class="panel-sub">Click any report to preview or download</div></div></div><div class="panel-body">
+<div class="quick">
+ <div class="q" onclick="generateMockReport('sales')"><b>▤</b>Sales Report</div><div class="q" onclick="generateMockReport('purchase')"><b>▣</b>Purchase Report</div>
+ <div class="q" onclick="generateMockReport('pnl')"><b>↗</b>Profit & Loss</div><div class="q" onclick="generateMockReport('stock')"><b>▦</b>Stock Report</div>
+ <div class="q" onclick="customerStatement('Ali Khan')"><b>👤</b>Customer Statement</div><div class="q" onclick="generateMockReport('supplier')"><b>🏢</b>Supplier Report</div>
+ <div class="q" onclick="generateMockReport('repair')"><b>🛠</b>Repair Report</div><div class="q" onclick="generateMockReport('expense')"><b>₨</b>Expense Report</div>
+</div></div></div>`;
+}
+
+function users(){
+return `
+<div class="hero"><div><h2>Users & Permissions</h2><p>Each employee uses their own approved Google account. Roles control which modules and actions they can access.</p></div><div class="hero-actions"><button class="btn primary" onclick="openAddUser()">+ Add User</button></div></div>
+<div class="alert blue" style="margin-bottom:14px"><b>Google Login:</b> only Gmail/Google accounts approved by A&Z can enter the system. Shared accounts are discouraged.</div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Gmail</th><th>Role</th><th>Status</th><th>Last Login</th><th>Action</th></tr></thead><tbody>
+<tr><td>Abid Shah</td><td>abid@gmail.com</td><td>Super Admin</td><td>${badge("Active","green")}</td><td>Today 09:01 AM</td><td><span class="action-link" onclick="userActivity('Abid Shah')">View Activity</span></td></tr>
+<tr><td>Arif Khan</td><td>arif@gmail.com</td><td>Manager</td><td>${badge("Active","green")}</td><td>Today 09:10 AM</td><td><span class="action-link" onclick="userActivity('Arif Khan')">View Activity</span></td></tr>
+<tr><td>Umair</td><td>umair@gmail.com</td><td>Cashier</td><td>${badge("Active","green")}</td><td>Today 09:17 AM</td><td><span class="action-link" onclick="userActivity('Umair')">View Activity</span></td></tr>
+<tr><td>Sajid</td><td>sajid@gmail.com</td><td>Technician</td><td>${badge("Active","green")}</td><td>Today 09:06 AM</td><td><span class="action-link" onclick="userActivity('Sajid')">View Activity</span></td></tr>
+<tr><td>Faiza</td><td>faiza@gmail.com</td><td>Storekeeper</td><td>${badge("Active","green")}</td><td>Yesterday 05:12 PM</td><td><span class="action-link" onclick="userActivity('Faiza')">View Activity</span></td></tr>
+</tbody></table></div></div>`;
+}
+
+function audit(){
+return `
+<div class="hero"><div><h2>Login & Audit Logs</h2><p>See who logged in, from which device/network, and what important actions were performed.</p></div><div class="hero-actions"><button class="btn secondary" onclick="toast('Audit log downloaded')">Download Log</button></div></div>
+<div class="grid-2">
+ <div class="panel"><div class="panel-head"><div><div class="panel-title">Login Activity</div><div class="panel-sub">Daily user access</div></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Login</th><th>Device</th><th>IP</th><th>Status</th></tr></thead><tbody>
+ <tr><td>Abid Shah</td><td>09:01 AM</td><td>Chrome / Windows</td><td>39.xxx.xxx.21</td><td>${badge("Success","green")}</td></tr>
+ <tr><td>Umair</td><td>09:17 AM</td><td>Chrome / Windows</td><td>39.xxx.xxx.35</td><td>${badge("Success","green")}</td></tr>
+ <tr><td>Sajid</td><td>09:06 AM</td><td>Chrome / Android</td><td>182.xxx.xxx.18</td><td>${badge("Success","green")}</td></tr>
+ <tr><td>Unknown</td><td>02:14 AM</td><td>Safari / iPhone</td><td>103.xxx.xxx.98</td><td>${badge("Denied","red")}</td></tr>
+ </tbody></table></div></div>
+ <div class="panel"><div class="panel-head"><div><div class="panel-title">Important Activity</div><div class="panel-sub">Automatic audit trail</div></div></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Reference</th></tr></thead><tbody>
+ <tr><td>11:42 AM</td><td>Umair</td><td>Created sale</td><td>INV-0045</td></tr>
+ <tr><td>11:20 AM</td><td>Faiza</td><td>Received stock</td><td>PUR-0062</td></tr>
+ <tr><td>10:55 AM</td><td>Arif Khan</td><td>Changed selling price</td><td>Dell 5420</td></tr>
+ <tr><td>10:16 AM</td><td>Sajid</td><td>Updated repair status</td><td>RT-0003</td></tr>
+ </tbody></table></div></div>
+</div>
+<div class="alert orange" style="margin-top:14px"><b>Note:</b> network/IP information can be recorded. Exact physical GPS location requires separate permission from the user's device.</div>`;
+}
+
+function settings(){
+return `
+<div class="hero"><div><h2>Settings</h2><p>Configure company details, invoice numbering, stock rules, taxes, backups and security.</p></div><div class="hero-actions"><button class="btn primary" onclick="toast('Settings saved')">Save Settings</button></div></div>
+<div class="grid-2">
+ <div class="panel"><div class="panel-head"><div class="panel-title">Company</div></div><div class="panel-body"><div class="form-grid">
+  <div class="field full"><label>Business Name</label><input value="A&Z Consultants"></div>
+  <div class="field"><label>Phone</label><input value="+92 5811 XXXXX"></div><div class="field"><label>City</label><input value="Gilgit"></div>
+  <div class="field full"><label>Invoice Footer</label><textarea rows="3">Thank you for choosing A&Z Consultants.</textarea></div>
+ </div></div></div>
+ <div class="panel"><div class="panel-head"><div class="panel-title">Inventory & Security</div></div><div class="panel-body">
+  <div class="kpi-line"><span>Block duplicate serial numbers</span>${badge("Enabled","green")}</div>
+  <div class="kpi-line"><span>Prevent negative stock</span>${badge("Enabled","green")}</div>
+  <div class="kpi-line"><span>Google account login</span>${badge("Enabled","green")}</div>
+  <div class="kpi-line"><span>Audit important changes</span>${badge("Enabled","green")}</div>
+  <div class="kpi-line"><span>Daily backup</span>${badge("Enabled","green")}</div>
+ </div></div>
+</div>`;
+}
+
+pages.dashboard=dashboard; pages.pos=pos; pages.products=products; pages.inventory=inventory; pages.customers=customers;
+pages.quotations=quotations; pages.purchases=purchases; pages.suppliers=suppliers; pages.repairs=repairs; pages.warranty=warranty;
+pages.projects=projects; pages.accounts=accounts; pages.reports=reports; pages.users=users; pages.audit=audit; pages.settings=settings;
+
+function go(page){
+ document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+ const nav=document.querySelector(`.nav-item[data-page="${page}"]`);
+ document.getElementById('pageTitle').textContent=nav?nav.textContent.trim():page;
+ document.getElementById('content').innerHTML=pages[page]();
+ document.getElementById('sidebar').classList.remove('open');
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-item').forEach(x=>x.addEventListener('click',()=>go(x.dataset.page)));
+
+function openModal(title,body,foot="",small=false){
+ closeSheet();
+ document.getElementById('modalTitle').textContent=title;
+ document.getElementById('modalBody').innerHTML=body;
+ document.getElementById('modalFoot').innerHTML=foot;
+ document.getElementById('modal').classList.toggle('small',small);
+ document.getElementById('modalBackdrop').classList.add('show');
+}
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('show')}
+document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal()});
+
+function openSheet(title,body,foot=""){
+ closeModal();
+ document.getElementById('sheetTitle').textContent=title;
+ document.getElementById('sheetBody').innerHTML=body;
+ document.getElementById('sheetFoot').innerHTML=foot;
+ document.getElementById('sheetBackdrop').classList.add('show');
+ document.body.style.overflow='hidden';
+}
+function closeSheet(){
+ document.getElementById('sheetBackdrop').classList.remove('show');
+ document.body.style.overflow='';
+}
+document.getElementById('sheetBackdrop').addEventListener('click',e=>{if(e.target.id==='sheetBackdrop')closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSheet();closeModal()}});
+
+function sheetSave(msg,after){
+ closeSheet();
+ toast(msg);
+ if(after)after();
+}
+function toast(msg){
+ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2100);
+}
+function updateClock(){
+ const d=new Date(); document.getElementById('clock').textContent=d.toLocaleString('en-PK',{weekday:'short',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock,30000); updateClock();
+
+function addProduct(i,opts={}){
+ const p=state.products[i];
+ const qty=Math.max(1,Math.min(p.stock,Number(opts.qty)||1));
+ if(p.serial){
+  openSheet("Select Serial Number",`<div class="alert blue">This product uses serial tracking. Each unit needs its own serial — quantity is always 1.</div>
+  <div class="field" style="margin-top:12px"><label>${p.name}</label><select id="serialSel"><option>${p.model.toUpperCase()}-A01</option><option>${p.model.toUpperCase()}-A02</option></select></div>`,
+  `<button class="btn ghost" onclick="${opts.fromPicker?"openPosAddItem()":"closeSheet()"}">Back</button><button class="btn primary" onclick="confirmSerializedAdd(${i},${opts.fromPicker?"true":"false"})">Add to Cart</button>`);
+  return;
+ }
+ pushCartLine(p,"-",qty);
+ go("pos");
+ toast(p.name+(qty>1?" × "+qty:"")+" added");
+ if(opts.fromPicker)openPosAddItem(state.pos.sheetSearch||"");
+}
+function pushCartLine(p,serial,qty){
+ if(serial==="-"){
+  const existing=state.cart.find(x=>x.name===p.name&&x.model===p.model&&x.serial==="-");
+  if(existing){
+   const max=cartLineMaxQty(existing);
+   existing.qty=Math.min(max,existing.qty+qty);
+   return;
+  }
+ }
+ state.cart.push({name:p.name,model:p.model,serial,qty,price:p.price});
+}
+function confirmSerializedAdd(i,returnToPicker){
+ const p=state.products[i], s=document.getElementById("serialSel").value;
+ pushCartLine(p,s,1);
+ go("pos");
+ toast("Added with serial "+s);
+ if(returnToPicker){openPosAddItem(state.pos.sheetSearch||"");}else closeSheet();
+}
+function posSheetProductListHTML(filter=""){
+ const q=(filter||"").trim().toLowerCase();
+ const rows=state.products.map((p,i)=>({p,i})).filter(({p})=>{
+  if(!q)return true;
+  return p.name.toLowerCase().includes(q)||p.model.toLowerCase().includes(q)||p.barcode.includes(q)||p.cat.toLowerCase().includes(q);
+ });
+ if(!rows.length)return `<div class="empty">No products match your search.</div>`;
+ return rows.map(({p,i})=>`<div class="pos-sheet-row"><div class="product-icon">${posProductIcon(p,i)}</div><div class="pos-sheet-row-main"><strong>${p.name}</strong><span>${p.cat} · ${money(p.price)} · Stock ${p.stock}${p.serial?" · Serial tracked":""}</span></div><button type="button" class="btn primary" onclick="addProductFromSheet(${i})">Add</button></div>`).join("");
+}
+function filterPosSheetList(v){state.pos.sheetSearch=v;const el=document.getElementById("posSheetProductList");if(el)el.innerHTML=posSheetProductListHTML(v)}
+function addProductFromSheet(i){addProduct(i,{fromPicker:true,qty:1})}
+function openPosAddItem(search=""){
+ state.pos.sheetSearch=search;
+ openSheet("Add Item to Sale",`<p style="margin:0 0 10px;font-size:11px;color:var(--muted)">Search and tap <b>Add</b> for each product. The sheet stays open so you can add multiple items.</p>
+ <div class="search"><span>⌕</span><input id="posSheetSearch" placeholder="Search name, model, barcode…" value="${(search||"").replace(/"/g,"&quot;")}" oninput="filterPosSheetList(this.value)"></div>
+ <div id="posSheetProductList" class="pos-sheet-list" style="margin-top:12px">${posSheetProductListHTML(search)}</div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Close</button><button class="btn secondary" onclick="closeSheet();go('pos')">View cart</button>`);
+ setTimeout(()=>document.getElementById("posSheetSearch")?.focus(),120);
+}
+function removeCart(i){state.cart.splice(i,1);go('pos')}
+function simulateScan(){
+ state.pos.search="896400120005";
+ go("pos");
+ simulateSearch();
+}
+function simulateSearch(){
+ posSyncSearch();
+ const q=(state.pos.search||"").trim().toLowerCase();
+ if(!q){toast("Type or scan a product first");return}
+ const idx=state.products.findIndex(p=>p.name.toLowerCase().includes(q)||p.barcode===q||p.model.toLowerCase()===q);
+ if(idx>=0){addProduct(idx);state.pos.search="";} else {toast("Product not found — try barcode 896400120005")}
+}
+function selectPay(x){state.pos.pay=x;go("pos")}
+function completeSale(){
+ if(!state.cart.length){toast("Add at least one product");return}
+ const total=cartTotal();
+ const pay=state.pos.pay||"Cash";
+ openModal("Sale Completed",`<div style="text-align:center;padding:12px 0"><div style="font-size:44px">✓</div><h2 style="margin:8px 0;color:#148c52">Invoice INV-0046</h2><p style="color:#667b8e;font-size:12px">Paid via <b>${pay}</b>. Stock and serials would update in the live system.</p><div class="cart-total"><div class="cart-line grand"><span>Total</span><span>${money(total)}</span></div></div></div>`,
+ `<button class="btn secondary" onclick="window.print()">Print Invoice</button><button class="btn primary" onclick="closeModal()">Done</button>`,true)
+}
+
+function productFormFields(p={},edit=false){
+ const d={name:"Dell Latitude 7420",brand:"Dell",model:"7420",barcode:"896400120099",min:5,purchase:92000,price:108000,serial:"DL5420-001",serialTrack:"Enabled",...p};
+ return `<div class="form-grid">
+   <div class="field full"><label>Product Name</label><input id="pfName" value="${d.name}"></div>
+   <div class="field"><label>Brand</label><input id="pfBrand" value="${d.brand}"></div><div class="field"><label>Model</label><input id="pfModel" value="${d.model}"></div>
+   <div class="field"><label>Barcode</label><input id="pfBarcode" value="${d.barcode}"></div><div class="field"><label>Low Stock Threshold</label><input id="pfMin" value="${d.min}" type="number"></div>
+   <div class="field"><label>Purchase Price</label><input id="pfPurchase" value="${d.purchase}"></div><div class="field"><label>Selling Price</label><input id="pfPrice" value="${d.price}"></div>
+   <div class="field"><label>Serial Tracking</label><select id="pfSerialTrack"><option ${d.serialTrack==="Enabled"?"selected":""}>Enabled</option><option ${d.serialTrack==="Disabled"?"selected":""}>Disabled</option></select></div>
+   <div class="field"><label>Serial Number</label><input id="newSerial" value="${d.serial}"></div>
+   <div class="field full"><div id="serialMsg" class="alert ${edit?'blue':'red'}">${edit?'<b>Edit mode:</b> update fields and save.':'<b>Demo:</b> DL5420-001 already exists. Try changing it to DL7420-100.'}</div></div>
+ </div>`;
+}
+function openAddProduct(){
+ openSheet("Add Product",productFormFields(),
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn secondary" onclick="validateSerial()">Validate Serial</button><button class="btn primary" onclick="sheetSave('Product saved')">Save Product</button>`);
+}
+function openEditProduct(i){
+ const p=state.products[i];
+ openSheet("Edit Product",productFormFields({name:p.name,brand:p.brand,model:p.model,barcode:p.barcode,min:p.min,purchase:Math.round(p.price*.85),price:p.price,serial:p.model.toUpperCase()+"-001",serialTrack:p.serial?"Enabled":"Disabled"},true),
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Product updated',()=>go('products'))">Save Changes</button>`);
+}
+function validateSerial(){
+ const s=document.getElementById('newSerial').value.trim().toUpperCase();
+ const msg=document.getElementById('serialMsg');
+ if(state.serials.has(s)){
+   msg.className="alert red";msg.innerHTML=`<b>Duplicate serial blocked:</b> ${s} already exists in inventory.`;
+ }else{
+   msg.className="alert blue";msg.innerHTML=`Serial ${s} is available. Product can be saved.`;
+   toast("Serial validated successfully");
+ }
+}
+function openQR(i=0){
+ const p=state.products[i]||state.products[0];
+ let cells="";
+ const pattern="111111101010111010001011101101011101011011101110101011101000101111111101010101000000000111011010111010110100111001101010101110101010111000100011111110101010101";
+ for(let k=0;k<169;k++)cells+=`<i class="${pattern[k%pattern.length]==='1'?'on':''}"></i>`;
+ openModal("Product QR Code",`<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><div class="qr">${cells}</div><div><h3 style="margin-top:0">${p.name}</h3><p style="font-size:11px;color:#667">Model: ${p.model}<br>Barcode: ${p.barcode}<br>Price: ${money(p.price)}</p><div class="alert blue">This QR is for prototype display. In the real system it will contain the product / serial identifier.</div></div></div>`,
+ `<button class="btn secondary" onclick="window.print()">Print Label</button><button class="btn primary" onclick="closeModal()">Close</button>`,true);
+}
+function viewProduct(i){
+ const p=state.products[i];
+ openModal(p.name,`<div class="detail-grid"><div class="info-box"><h4>Product Details</h4><div class="info-row"><span>Brand</span><b>${p.brand}</b></div><div class="info-row"><span>Model</span><b>${p.model}</b></div><div class="info-row"><span>Barcode</span><b>${p.barcode}</b></div><div class="info-row"><span>Price</span><b>${money(p.price)}</b></div></div>
+ <div class="info-box"><h4>Inventory</h4><div class="info-row"><span>Available</span><b>${p.stock}</b></div><div class="info-row"><span>Low Stock Alert</span><b>${p.min}</b></div><div class="info-row"><span>Status</span>${p.stock<=p.min?badge("Low Stock","red"):badge("Healthy","green")}</div><div class="info-row"><span>Serial Tracking</span><b>${p.serial?"Enabled":"Disabled"}</b></div></div></div>
+ ${p.serial?`<div class="panel" style="margin-top:12px;box-shadow:none"><div class="panel-head"><div class="panel-title">Sample Serial Numbers</div></div><div class="table-wrap"><table><thead><tr><th>Serial</th><th>Status</th></tr></thead><tbody><tr><td>${p.model.toUpperCase()}-001</td><td>${badge("Available","green")}</td></tr><tr><td>${p.model.toUpperCase()}-002</td><td>${badge("Sold","blue")}</td></tr><tr><td>${p.model.toUpperCase()}-003</td><td>${badge("Repair","orange")}</td></tr></tbody></table></div></div>`:""}`,
+ `<button class="btn secondary" onclick="openEditProduct(${i});closeModal()">Edit</button><button class="btn primary" onclick="closeModal()">Close</button>`);
+}
+function openSerialLookup(){
+ openSheet("Serial Number Lookup",`<div class="field"><label>Serial Number</label><input id="serialLookupInp" value="DL5420-002"></div><div id="serialLookupResult" class="alert blue" style="margin-top:12px"><b>Found:</b> Dell Latitude 5420<br>Invoice: INV-0012<br>Customer: Ali Khan<br>Status: Sold<br>Warranty: Active until 12 Jan 2027</div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Close</button><button class="btn primary" onclick="runSerialLookup()">Search</button>`);
+}
+function runSerialLookup(){
+ const s=(document.getElementById('serialLookupInp').value||"").trim().toUpperCase();
+ const box=document.getElementById('serialLookupResult');
+ if(state.serials.has(s)){
+  box.className="alert blue";box.innerHTML=`<b>Found:</b> Dell Latitude 5420<br>Serial: ${s}<br>Invoice: INV-0012<br>Customer: Ali Khan<br>Status: Sold<br>Warranty: Active until 12 Jan 2027`;
+ }else{
+  box.className="alert orange";box.innerHTML=`<b>Not in system:</b> ${s || "(empty)"} — no matching record in prototype data.`;
+ }
+}
+function openStockAdjustment(){
+ openSheet("Stock Adjustment",`<div class="form-grid"><div class="field full"><label>Product</label><select>${state.products.map(p=>`<option>${p.name}</option>`).join("")}</select></div><div class="field"><label>Adjustment Type</label><select><option>Increase (+)</option><option>Decrease (-)</option><option>Damage / Write-off</option></select></div><div class="field"><label>Quantity</label><input type="number" value="1"></div><div class="field full"><label>Reason</label><textarea rows="3">Received from supplier recount</textarea></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Stock adjustment recorded')">Post Adjustment</button>`);
+}
+function openAddCustomer(data={}){
+ const d={name:"",phone:"",email:"",org:"",address:"Gilgit",...data};
+ openSheet(d.name?"Edit Customer":"Add Customer",`<div class="form-grid"><div class="field full"><label>Full Name / Organization</label><input value="${d.name}"></div><div class="field"><label>Phone</label><input value="${d.phone}"></div><div class="field"><label>Email</label><input value="${d.email}"></div><div class="field full"><label>Organization (optional)</label><input value="${d.org}"></div><div class="field full"><label>Address</label><input value="${d.address}"></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('${d.name?"Customer updated":"Customer saved"}')">Save Customer</button>`);
+}
+function openEditCustomer(name,phone,email){openAddCustomer({name,phone,email})}
+function openNewQuotation(){
+ openSheet("New Quotation",`<div class="form-grid"><div class="field"><label>Customer</label><select><option>Ali Khan</option><option>ABC School Gilgit</option><option>Walk-in</option></select></div><div class="field"><label>Valid Until</label><input type="date" value="2026-10-15"></div><div class="field full"><label>Title / Description</label><input value="Laptop + SSD bundle"></div><div class="field"><label>Estimated Amount (Rs.)</label><input value="95000"></div><div class="field"><label>Status</label><select><option>Pending</option><option>Sent</option><option>Approved</option></select></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Quotation Q-0004 created')">Save Quotation</button>`);
+}
+function openAddSupplier(){
+ openSheet("Add Supplier",`<div class="form-grid"><div class="field full"><label>Supplier Name</label><input value="New Supplier Co."></div><div class="field"><label>Phone</label><input value="0300-0000000"></div><div class="field"><label>Email</label><input value="contact@supplier.com"></div><div class="field full"><label>Address</label><input value="Gilgit"></div><div class="field full"><label>Notes</label><textarea rows="2">Payment terms: 30 days</textarea></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Supplier saved')">Save Supplier</button>`);
+}
+function openWarrantyClaim(){
+ openSheet("Warranty / RMA Claim",`<div class="form-grid"><div class="field"><label>Serial Number</label><input value="DL5420-002"></div><div class="field"><label>Customer</label><select><option>Ali Khan</option><option>Sana Javed</option></select></div><div class="field full"><label>Issue Description</label><textarea rows="3">Device not booting under warranty</textarea></div><div class="field"><label>Claim Type</label><select><option>Customer Warranty</option><option>Supplier RMA</option></select></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Warranty claim registered')">Submit Claim</button>`);
+}
+function openNewProject(){
+ openSheet("New Project",`<div class="form-grid"><div class="field"><label>Client</label><select><option>ABC School Gilgit</option><option>Government Office</option></select></div><div class="field"><label>Project Type</label><select><option>Computer Lab</option><option>CCTV</option><option>Networking</option></select></div><div class="field"><label>Contract Value (Rs.)</label><input value="850000"></div><div class="field"><label>Start Date</label><input type="date" value="2026-09-27"></div><div class="field full"><label>Scope Summary</label><textarea rows="3">Supply, installation and testing of equipment.</textarea></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Project PRJ-0046 created')">Create Project</button>`);
+}
+function openAddExpense(){
+ openSheet("Add Expense",`<div class="form-grid"><div class="field"><label>Date</label><input type="date" value="2026-09-27"></div><div class="field"><label>Amount (Rs.)</label><input value="3500"></div><div class="field full"><label>Category</label><select><option>Shop Rent</option><option>Utilities</option><option>Transport</option><option>Miscellaneous</option></select></div><div class="field full"><label>Description</label><input value="Electricity bill"></div><div class="field"><label>Paid From</label><select><option>Cash</option><option>Bank</option></select></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Expense EXP-130 recorded')">Save Expense</button>`);
+}
+function openAddUser(){
+ openSheet("Add User",`<div class="form-grid"><div class="field full"><label>Full Name</label><input value="New Staff"></div><div class="field full"><label>Google / Gmail Account</label><input value="staff@gmail.com"></div><div class="field"><label>Role</label><select><option>Cashier</option><option>Manager</option><option>Technician</option><option>Storekeeper</option><option>Super Admin</option></select></div><div class="field"><label>Status</label><select><option>Active</option><option>Disabled</option></select></div></div><div class="alert blue" style="margin-top:12px">Only approved Google accounts can sign in. Admin must enable access after adding.</div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('User invitation saved — pending Google approval')">Save User</button>`);
+}
+function customerStatement(name){
+ const rows=[
+  ["INV-0012","10 Sep 2026","Dell Latitude 5420","DL5420-002","1","85,000","85,000","0"],
+  ["INV-0034","15 Sep 2026","Kingston SSD 512GB","SSD512-019","2","24,000","20,000","4,000"],
+  ["INV-0045","20 Sep 2026","Laptop Repair Service","-","1","5,000","0","5,000"]
+ ];
+ openModal("Customer Statement",
+ `<div id="statement">
+   <div class="report-head"><div><h3>A&Z Consultants</h3><p>Customer Statement</p><p>Gilgit, Gilgit-Baltistan</p></div><div style="text-align:right"><b>${name}</b><p>Statement Date: 27 Sep 2026</p></div></div>
+   <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px">
+    <div class="stat s-blue" style="min-height:80px"><div class="label">Total Purchases</div><div class="value" style="font-size:17px">Rs. 114,000</div></div>
+    <div class="stat s-green" style="min-height:80px"><div class="label">Total Paid</div><div class="value" style="font-size:17px">Rs. 105,000</div></div>
+    <div class="stat s-red" style="min-height:80px"><div class="label">Balance</div><div class="value" style="font-size:17px">Rs. 9,000</div></div>
+   </div>
+   <div class="table-wrap"><table><thead><tr><th>Bill #</th><th>Date</th><th>Product / Description</th><th>Serial</th><th>Qty</th><th>Amount</th><th>Paid</th><th>Balance</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+ </div>`,
+ `<button class="btn ghost" onclick="downloadStatementCSV('${name}')">Download Excel/CSV</button><button class="btn secondary" onclick="window.print()">Print / Save PDF</button><button class="btn primary" onclick="closeModal()">Close</button>`);
+}
+function downloadStatementCSV(name){
+ const csv=[
+ ["Bill #","Date","Product / Description","Serial","Qty","Amount","Paid","Balance"],
+ ["INV-0012","10 Sep 2026","Dell Latitude 5420","DL5420-002","1","85000","85000","0"],
+ ["INV-0034","15 Sep 2026","Kingston SSD 512GB","SSD512-019","2","24000","20000","4000"],
+ ["INV-0045","20 Sep 2026","Laptop Repair Service","-","1","5000","0","5000"]
+ ].map(r=>r.map(x=>`"${x}"`).join(",")).join("\n");
+ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=name.replace(/\s+/g,"_")+"_statement.csv";a.click();
+ toast("Customer statement downloaded");
+}
+function openPurchase(){
+ openSheet("New Purchase — Serial Validation",`<div class="form-grid"><div class="field"><label>Supplier</label><select><option>Tech World</option></select></div><div class="field"><label>Product</label><select><option>Dell Latitude 5420</option></select></div><div class="field"><label>Quantity</label><input value="3"></div><div class="field"><label>Total</label><input value="225000"></div><div class="field full"><label>Serial Numbers (one per line)</label><textarea id="purchaseSerials" rows="5">DLNEW-101\nDL5420-001\nDLNEW-103</textarea></div><div class="field full"><div id="purchaseSerialMsg" class="alert orange">Click Validate. The prototype contains one known duplicate: DL5420-001.</div></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn secondary" onclick="validatePurchaseSerials()">Validate Serials</button><button class="btn primary" onclick="sheetSave('Purchase PUR-0063 posted')">Post Purchase</button>`);
+}
+function validatePurchaseSerials(){
+ const list=document.getElementById('purchaseSerials').value.split(/\n+/).map(x=>x.trim().toUpperCase()).filter(Boolean);
+ const dup=list.filter(x=>state.serials.has(x));
+ const internal=list.filter((x,i)=>list.indexOf(x)!==i);
+ const msg=document.getElementById('purchaseSerialMsg');
+ if(dup.length||internal.length){msg.className="alert red";msg.innerHTML=`<b>Purchase blocked.</b> Duplicate serial(s): ${[...new Set([...dup,...internal])].join(", ")}`;}
+ else {msg.className="alert blue";msg.innerHTML="<b>All serial numbers are unique.</b> Purchase can be posted.";toast("Serial validation passed");}
+}
+function openRepair(){
+ openSheet("New Repair Ticket",`<div class="form-grid"><div class="field"><label>Customer</label><select><option>Ali Khan</option><option>Sana Javed</option></select></div><div class="field"><label>Device Type</label><select><option>Laptop</option><option>Desktop</option><option>Printer</option></select></div><div class="field"><label>Brand / Model</label><input value="Dell Latitude 5420"></div><div class="field"><label>Serial Number</label><input value="DL5420-002"></div><div class="field full"><label>Complaint</label><textarea rows="3">Laptop not turning on.</textarea></div><div class="field full"><label>Accessories Received</label><input value="Charger, Bag"></div></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Repair ticket RT-0006 created')">Create Ticket</button>`);
+}
+function repairDetail(){
+ openModal("Repair Ticket RT-0001",`<div class="detail-grid"><div class="info-box"><h4>Customer Information</h4><div class="info-row"><span>Name</span><b>Ali Khan</b></div><div class="info-row"><span>Phone</span><b>0312-1234567</b></div><div class="info-row"><span>Address</span><b>Gilgit</b></div></div>
+ <div class="info-box"><h4>Device Information</h4><div class="info-row"><span>Device</span><b>Laptop</b></div><div class="info-row"><span>Brand</span><b>Dell</b></div><div class="info-row"><span>Model</span><b>Latitude 5420</b></div><div class="info-row"><span>Serial</span><b>DL5420-002</b></div></div></div>
+ <div class="info-box" style="margin-top:12px"><h4>Complaint</h4><div style="font-size:11px">Laptop not turning on.</div></div>
+ <div class="detail-grid" style="margin-top:12px"><div class="info-box"><h4>Parts Used</h4><div class="info-row"><span>Power Cable ×1</span><b>Rs. 2,500</b></div><div class="info-row"><span>SSD 512GB ×1</span><b>Rs. 18,000</b></div></div><div class="info-box"><h4>Repair Summary</h4><div class="info-row"><span>Technician</span><b>Arif Khan</b></div><div class="info-row"><span>Labor Cost</span><b>Rs. 3,000</b></div><div class="info-row"><span>Total</span><b>Rs. 23,500</b></div></div></div>
+ <div class="timeline"><div class="step done"><div class="circle"></div><span>Received</span></div><div class="step done"><div class="circle"></div><span>Checking</span></div><div class="step done"><div class="circle"></div><span>Repairing</span></div><div class="step"><div class="circle"></div><span>Ready</span></div><div class="step"><div class="circle"></div><span>Delivered</span></div></div>`,
+ `<button class="btn secondary" onclick="window.print()">Print Ticket</button><button class="btn primary" onclick="closeModal()">Close</button>`);
+}
+function openCashClose(){
+ openSheet("Daily Cash Closing",`<div class="info-box"><div class="info-row"><span>Opening Cash</span><b>Rs. 50,000</b></div><div class="info-row"><span>Cash Sales</span><b>+ Rs. 180,000</b></div><div class="info-row"><span>Customer Collections</span><b>+ Rs. 50,000</b></div><div class="info-row"><span>Expenses</span><b>- Rs. 15,000</b></div><div class="info-row"><span>Expected Cash</span><b>Rs. 265,000</b></div></div><div class="field" style="margin-top:12px"><label>Actual Cash Counted</label><input value="264500"></div><div class="alert red" style="margin-top:12px"><b>Difference:</b> - Rs. 500</div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Cash closing submitted for approval')">Submit Closing</button>`);
+}
+
+const mockReportData={
+ sales:{title:"Sales Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Invoice","Date","Customer","Items","Payment","Amount"],rows:[["INV-0045","27 Sep 2026","Ali Khan","3","Cash","44,000"],["INV-0044","26 Sep 2026","Bilal Ahmed","2","Bank","32,000"],["INV-0043","25 Sep 2026","Sana Javed","1","Card","72,000"],["INV-0042","24 Sep 2026","Usman Q.","4","Cash","15,500"]],totals:[["Total Sales","6 invoices","","","","163,500"]]},
+ purchase:{title:"Purchase Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Purchase #","Date","Supplier","Items","Paid","Total"],rows:[["PUR-0062","27 Sep 2026","Tech World","8","400,000","540,000"],["PUR-0061","24 Sep 2026","Galaxy IT","12","122,000","122,000"],["PUR-0060","21 Sep 2026","Future Tech","5","150,000","310,000"]],totals:[["Total Purchases","3 bills","","","672,000","972,000"]]},
+ pnl:{title:"Profit & Loss (Estimate)",period:"September 2026",cols:["Category","Amount (Rs.)","Notes"],rows:[["Sales Revenue","250,000","Gross sales"],["Cost of Goods","145,000","Purchase cost estimate"],["Gross Profit","105,000",""],["Operating Expenses","85,000","Rent, utilities, salaries"],["Net Profit (Est.)","20,000","Prototype mock figures"]],totals:[]},
+ stock:{title:"Stock / Inventory Report",period:"As of 27 Sep 2026",cols:["Product","Category","Qty","Min","Value (Est.)","Status"],rows:state.products.map(p=>[p.name,p.cat,String(p.stock),String(p.min),(p.stock*p.price).toLocaleString("en-PK"),p.stock<=p.min?"Low":"OK"]),totals:[["Low stock items",String(state.products.filter(p=>p.stock<=p.min).length),"","","",""]]},
+ supplier:{title:"Supplier Outstanding Report",period:"As of 27 Sep 2026",cols:["Supplier","Purchases","Paid","Balance"],rows:[["Tech World","850,000","838,000","12,000"],["Galaxy IT","120,000","75,000","45,000"],["Future Tech","310,000","310,000","0"]],totals:[["Total Payable","","","57,000"]]},
+ repair:{title:"Repair Center Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Ticket","Customer","Device","Status","Revenue"],rows:[["RT-0001","Ali Khan","Dell Laptop","Received","0"],["RT-0002","Sana Javed","Desktop PC","Checking","0"],["RT-0003","Bilal Ahmed","HP Laptop","Repairing","0"],["RT-0005","Faiza Noor","Laptop","Ready","23,500"]],totals:[["Completed revenue","","","","23,500"]]},
+ expense:{title:"Expense Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Ref","Date","Category","Description","Amount"],rows:[["EXP-129","27 Sep 2026","Utilities","Electricity","3,500"],["EXP-128","25 Sep 2026","Transport","Delivery fuel","2,200"],["EXP-127","22 Sep 2026","Shop Rent","September rent","45,000"]],totals:[["Total Expenses","","","","50,700"]]},
+ summary:{title:"Business Summary Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Metric","Value","Notes"],rows:[["Total Sales","Rs. 250,000","Selected period"],["Total Purchases","Rs. 980,000","Selected period"],["Gross Profit (Est.)","Rs. 270,000","Mock estimate"],["Total Expenses","Rs. 85,000","Recorded"],["Cash in Hand","Rs. 78,900","Today"],["Customer Receivable","Rs. 42,000","Outstanding"]],totals:[]}
+};
+function generateMockReport(type){
+ const r=mockReportData[type]||mockReportData.summary;
+ const head=`<div class="report-head"><div><h3>A&Z Consultants</h3><p>${r.title}</p><p>Gilgit · Mock prototype data</p></div><div style="text-align:right"><p><b>${r.period}</b></p><p>Generated: ${new Date().toLocaleString("en-PK")}</p></div></div>`;
+ const table=`<div class="table-wrap"><table><thead><tr>${r.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${r.rows.map(row=>`<tr>${row.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}${r.totals.map(row=>`<tr style="font-weight:700;background:#f5f9fc">${row.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+ openModal(r.title,head+table,`<button class="btn ghost no-print" onclick="downloadMockReportCSV('${type}')">Download CSV</button><button class="btn secondary" onclick="window.print()">Print / PDF</button><button class="btn primary" onclick="closeModal()">Close</button>`);
+ toast("Mock report generated");
+}
+function downloadMockReportCSV(type){
+ const r=mockReportData[type]||mockReportData.summary;
+ const lines=[r.cols,...r.rows,...r.totals].filter(x=>x.length).map(row=>row.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines],{type:"text/csv"}));a.download=(type||"report")+"_mock_report.csv";a.click();
+ toast("Report CSV downloaded");
+}
+function userActivity(name){
+ openModal(name+" — Daily Activity",`<div class="info-box"><div class="info-row"><span>Gmail</span><b>${name.toLowerCase().replace(/\s+/g,'.')}@gmail.com</b></div><div class="info-row"><span>Last Login</span><b>Today 09:17 AM</b></div><div class="info-row"><span>Device</span><b>Chrome / Windows</b></div><div class="info-row"><span>IP</span><b>39.xxx.xxx.35</b></div></div>
+ <div class="panel" style="margin-top:12px;box-shadow:none"><div class="table-wrap"><table><thead><tr><th>Time</th><th>Activity</th><th>Reference</th></tr></thead><tbody><tr><td>09:17</td><td>Signed in with Google</td><td>LOGIN</td></tr><tr><td>10:02</td><td>Created invoice</td><td>INV-0044</td></tr><tr><td>11:42</td><td>Created invoice</td><td>INV-0045</td></tr><tr><td>12:05</td><td>Printed customer statement</td><td>Ali Khan</td></tr></tbody></table></div></div>`,
+ `<button class="btn primary" onclick="closeModal()">Close</button>`);
+}
+function showUserMenu(){
+ openModal("Signed in with Google",`<div style="display:flex;align-items:center;gap:12px"><div class="avatar" style="width:48px;height:48px">AS</div><div><b>Admin</b><div style="font-size:11px;color:#789">admin@gmail.com</div><div style="margin-top:5px">${badge("Super Admin","blue")}</div></div></div><div class="alert blue" style="margin-top:14px">This prototype demonstrates the planned Google/Gmail login. In production, only approved accounts will be allowed.</div>`,
+ `<button class="btn danger" onclick="closeModal();toast('Demo logout only')">Logout</button>`,true);
+}
+
+go('dashboard');
+</script>
+</body>
+</html>
