@@ -168,9 +168,10 @@ tr:hover td{background:#fafcfe}
 .cart-total{background:#f7fbff;border:1px solid #dbeaf6;border-radius:10px;padding:12px;margin-top:12px}
 .cart-line{display:flex;justify-content:space-between;font-size:11px;margin:6px 0}
 .cart-line.grand{font-size:15px;font-weight:800;color:#0d639e;border-top:1px solid #dce9f4;padding-top:9px;margin-top:9px}
-.payment-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.payment-row{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}
 .pay{border:0;border-radius:8px;padding:10px;color:#fff;font-weight:700;font-size:11px}
-.pay.cash{background:#13b76a}.pay.card{background:#0b84ff}.pay.bank{background:#ff9f1c}
+.pay.cash{background:#13b76a}.pay.card{background:#0b84ff}.pay.bank{background:#ff9f1c}.pay.credit{background:#7c5cff}
+.invoice-required label .req{color:#d73544;font-weight:800}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .field label{display:block;font-size:10px;color:#607789;margin-bottom:5px;font-weight:650}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 10px;outline:none;background:#fff;font-size:12px}
@@ -330,7 +331,14 @@ const state = {
     {name:"Cat6 LAN Cable Box",brand:"D-Link",model:"Cat6",stock:3,min:5,price:27000,barcode:"896400120007",serial:false,cat:"Networking"},
     {name:"CCTV Camera 4MP",brand:"TP-Link",model:"VIGI",stock:7,min:10,price:14500,barcode:"896400120008",serial:true,cat:"CCTV"}
   ],
-  pos:{pay:"Cash",cat:"All",search:""}
+  pos:{pay:"Cash",cat:"All",search:"",invoiceNo:"",customer:"Walk-in Customer",salesman:"Umair"},
+  salesmen:["Umair","Arif Khan","Abid Shah","Faiza"],
+  creditBills:[
+    {billNo:"INV-0034",customer:"Ali Khan",total:24000,paid:20000,balance:4000,date:"15 Sep 2026"},
+    {billNo:"INV-0045",customer:"Ali Khan",total:5000,paid:0,balance:5000,date:"20 Sep 2026"},
+    {billNo:"BILL-1088",customer:"ABC School Gilgit",total:250000,paid:0,balance:250000,date:"10 Sep 2026"}
+  ],
+  recoveries:[]
 };
 
 const pages = {};
@@ -437,13 +445,16 @@ ${posSteps()}
     <div class="panel-body">
       <div class="pos-checkout-head"><span class="count">${items} item${items===1?"":"s"} in cart</span>${items?`<span class="pos-item-badge">${money(cartTotal())}</span>`:""}</div>
       ${cartListItems()}
-      <div class="field"><label>Customer</label><select><option>Walk-in Customer</option><option>Ali Khan</option><option>Sana Javed</option><option>ABC School Gilgit</option></select></div>
+      <div class="field invoice-required"><label>Invoice / Bill No <span class="req">*</span></label><input id="posInvoiceNo" placeholder="Enter bill number manually (not auto)" value="${(state.pos.invoiceNo||"").replace(/"/g,"&quot;")}" oninput="state.pos.invoiceNo=this.value"></div>
+      <div class="field"><label>Customer</label><select id="posCustomer" onchange="state.pos.customer=this.value"><option ${state.pos.customer==="Walk-in Customer"?"selected":""}>Walk-in Customer</option><option ${state.pos.customer==="Ali Khan"?"selected":""}>Ali Khan</option><option ${state.pos.customer==="Sana Javed"?"selected":""}>Sana Javed</option><option ${state.pos.customer==="Bilal Ahmed"?"selected":""}>Bilal Ahmed</option><option ${state.pos.customer==="ABC School Gilgit"?"selected":""}>ABC School Gilgit</option></select></div>
+      <div class="field"><label>Salesman</label><select id="posSalesman" onchange="state.pos.salesman=this.value">${state.salesmen.map(s=>`<option ${state.pos.salesman===s?"selected":""}>${s}</option>`).join("")}</select></div>
       <div class="cart-total">
         <div class="cart-line"><span>Subtotal</span><strong id="subtotal">${money(cartTotal())}</strong></div>
         <div class="cart-line grand"><span>Total to pay</span><span id="grandTotal">${money(cartTotal())}</span></div>
       </div>
       <label style="display:block;font-size:10px;color:#607789;margin:12px 0 6px;font-weight:650">Payment method</label>
-      <div class="payment-row"><button type="button" class="pay cash ${pay==="Cash"?"active":""}" onclick="selectPay('Cash')">Cash</button><button type="button" class="pay card ${pay==="Card"?"active":""}" onclick="selectPay('Card')">Card</button><button type="button" class="pay bank ${pay==="Bank"?"active":""}" onclick="selectPay('Bank')">Bank</button></div>
+      <div class="payment-row"><button type="button" class="pay cash ${pay==="Cash"?"active":""}" onclick="selectPay('Cash')">Cash</button><button type="button" class="pay card ${pay==="Card"?"active":""}" onclick="selectPay('Card')">Card</button><button type="button" class="pay bank ${pay==="Bank"?"active":""}" onclick="selectPay('Bank')">Bank</button><button type="button" class="pay credit ${pay==="Credit"?"active":""}" onclick="selectPay('Credit')">Credit (Udhar)</button></div>
+      ${pay==="Credit"?`<div class="alert orange" style="margin-top:10px;font-size:10px"><b>Credit sale:</b> full amount posts to customer balance. Later recovery is done <b>against this same bill number</b> from Accounts.</div>`:""}
       <button class="btn success" type="button" style="width:100%;margin-top:12px;padding:13px;font-size:13px${items?"":";opacity:.55;cursor:not-allowed"}" onclick="completeSale()" ${items?"":"disabled"}>Complete sale · ${money(cartTotal())}</button>
     </div>
   </div>
@@ -607,7 +618,7 @@ return `
 
 function accounts(){
 return `
-<div class="hero"><div><h2>Accounts</h2><p>Simple operational accounts for cash, banks, receivables, payables, expenses and daily closing.</p></div><div class="hero-actions"><button class="btn primary" onclick="openCashClose()">Daily Cash Closing</button><button class="btn secondary" onclick="openAddExpense()">+ Add Expense</button></div></div>
+<div class="hero"><div><h2>Accounts</h2><p>Cash, banks, expenses — and <b>credit recovery against bill number</b> when customers pay later.</p></div><div class="hero-actions"><button class="btn primary" onclick="openCreditRecovery()">Recover against Bill No</button><button class="btn secondary" onclick="openCashClose()">Daily Cash Closing</button><button class="btn secondary" onclick="openAddExpense()">+ Add Expense</button></div></div>
 <div class="cards">
  <div class="stat s-green"><div class="label">Cash in Hand</div><div class="value">Rs. 78,900</div><div class="note">As of today</div></div>
  <div class="stat s-blue"><div class="label">Bank Balance</div><div class="value">Rs. 5,40,000</div><div class="note">All linked accounts</div></div>
@@ -625,23 +636,33 @@ return `
  <div class="kpi-line"><span>Collections</span><strong style="color:#148c52">+ Rs. 50,000</strong></div><div class="kpi-line"><span>Expenses</span><strong style="color:#d73544">- Rs. 15,000</strong></div>
  <div class="kpi-line"><span>Expected Closing</span><strong>Rs. 265,000</strong></div>
  </div></div>
-</div>`;
+</div>
+<div class="panel" style="margin-top:14px"><div class="panel-head"><div><div class="panel-title">Credit bills — pending recovery</div><div class="panel-sub">Payments are recorded against the original invoice / bill number</div></div></div>
+<div class="table-wrap"><table><thead><tr><th>Bill No</th><th>Customer</th><th>Bill Date</th><th>Total</th><th>Recovered</th><th>Balance</th><th>Action</th></tr></thead>
+<tbody>${state.creditBills.filter(b=>b.balance>0).map(b=>`<tr><td><b>${b.billNo}</b></td><td>${b.customer}</td><td>${b.date}</td><td>${money(b.total)}</td><td style="color:#148c52">${money(b.paid)}</td><td style="color:#d73544"><b>${money(b.balance)}</b></td><td><span class="action-link" onclick="openCreditRecovery('${b.billNo.replace(/'/g,"\\'")}')">Recover</span></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No outstanding credit bills</td></tr>`}
+</tbody></table></div></div>`;
 }
 
 function reports(){
 return `
-<div class="hero"><div><h2>Reports</h2><p>Download operational reports for sales, purchases, inventory, accounts, customers, repairs and projects.</p></div><div class="hero-actions"><button class="btn primary" onclick="generateMockReport('summary')">Generate Report</button></div></div>
+<div class="hero"><div><h2>Reports</h2><p>Separate reports for customers, products, and salesmen — plus purchases, stock, and accounts.</p></div></div>
+<div class="panel" style="margin-bottom:14px"><div class="panel-head"><div><div class="panel-title">Customer · Product · Salesman</div><div class="panel-sub">Each report opens separately (client requirement)</div></div></div><div class="panel-body">
+<div class="quick" style="grid-template-columns:repeat(3,1fr)">
+ <div class="q" onclick="generateMockReport('customers')"><b>👥</b>Customer Report<br><small style="color:#8798a8">Each customer sales & balance</small></div>
+ <div class="q" onclick="generateMockReport('products')"><b>📦</b>Product Report<br><small style="color:#8798a8">Each product qty & revenue</small></div>
+ <div class="q" onclick="generateMockReport('salesmen')"><b>📈</b>Salesman Performance<br><small style="color:#8798a8">Invoices, credit & recovery</small></div>
+</div></div></div>
 <div class="cards">
  <div class="stat s-blue"><div class="label">Total Sales</div><div class="value">Rs. 250,000</div><div class="note">Selected date range</div></div>
  <div class="stat s-green"><div class="label">Total Purchases</div><div class="value">Rs. 980,000</div><div class="note">Selected date range</div></div>
  <div class="stat s-cyan"><div class="label">Total Profit</div><div class="value">Rs. 270,000</div><div class="note">Gross estimate</div></div>
  <div class="stat s-red"><div class="label">Total Expenses</div><div class="value">Rs. 85,000</div><div class="note">Recorded expenses</div></div>
 </div>
-<div class="panel"><div class="panel-head"><div><div class="panel-title">Report Center</div><div class="panel-sub">Click any report to preview or download</div></div></div><div class="panel-body">
+<div class="panel"><div class="panel-head"><div><div class="panel-title">Other Reports</div><div class="panel-sub">Purchases, stock, supplier, repairs, expenses</div></div><button class="btn ghost" onclick="generateMockReport('summary')">Summary</button></div><div class="panel-body">
 <div class="quick">
- <div class="q" onclick="generateMockReport('sales')"><b>▤</b>Sales Report</div><div class="q" onclick="generateMockReport('purchase')"><b>▣</b>Purchase Report</div>
+ <div class="q" onclick="generateMockReport('sales')"><b>▤</b>Sales Register</div><div class="q" onclick="generateMockReport('purchase')"><b>▣</b>Purchase Report</div>
  <div class="q" onclick="generateMockReport('pnl')"><b>↗</b>Profit & Loss</div><div class="q" onclick="generateMockReport('stock')"><b>▦</b>Stock Report</div>
- <div class="q" onclick="customerStatement('Ali Khan')"><b>👤</b>Customer Statement</div><div class="q" onclick="generateMockReport('supplier')"><b>🏢</b>Supplier Report</div>
+ <div class="q" onclick="customerStatement('Ali Khan')"><b>📄</b>Customer Statement</div><div class="q" onclick="generateMockReport('supplier')"><b>🏢</b>Supplier Report</div>
  <div class="q" onclick="generateMockReport('repair')"><b>🛠</b>Repair Report</div><div class="q" onclick="generateMockReport('expense')"><b>₨</b>Expense Report</div>
 </div></div></div>`;
 }
@@ -694,6 +715,7 @@ return `
   <div class="kpi-line"><span>Google account login</span>${badge("Enabled","green")}</div>
   <div class="kpi-line"><span>Audit important changes</span>${badge("Enabled","green")}</div>
   <div class="kpi-line"><span>Daily backup</span>${badge("Enabled","green")}</div>
+  <div class="kpi-line"><span>Invoice / bill numbering</span>${badge("Manual entry","blue")}</div>
  </div></div>
 </div>`;
 }
@@ -816,12 +838,71 @@ function simulateSearch(){
  if(idx>=0){addProduct(idx);state.pos.search="";} else {toast("Product not found — try barcode 896400120005")}
 }
 function selectPay(x){state.pos.pay=x;go("pos")}
+function posSyncCheckoutFields(){
+ const inv=document.getElementById("posInvoiceNo"); if(inv)state.pos.invoiceNo=inv.value;
+ const cust=document.getElementById("posCustomer"); if(cust)state.pos.customer=cust.value;
+ const sm=document.getElementById("posSalesman"); if(sm)state.pos.salesman=sm.value;
+}
+function findCreditBill(billNo){
+ const k=(billNo||"").trim().toUpperCase();
+ return state.creditBills.find(b=>b.billNo.toUpperCase()===k);
+}
 function completeSale(){
  if(!state.cart.length){toast("Add at least one product");return}
+ posSyncCheckoutFields();
+ const billNo=(state.pos.invoiceNo||"").trim();
+ if(!billNo){toast("Enter invoice / bill number manually");document.getElementById("posInvoiceNo")?.focus();return}
+ if(state.pos.customer==="Walk-in Customer"&&state.pos.pay==="Credit"){toast("Select a customer for credit sale");return}
+ if(findCreditBill(billNo)){toast("This bill number already exists — use a unique invoice no");return}
  const total=cartTotal();
  const pay=state.pos.pay||"Cash";
- openModal("Sale Completed",`<div style="text-align:center;padding:12px 0"><div style="font-size:44px">✓</div><h2 style="margin:8px 0;color:#148c52">Invoice INV-0046</h2><p style="color:#667b8e;font-size:12px">Paid via <b>${pay}</b>. Stock and serials would update in the live system.</p><div class="cart-total"><div class="cart-line grand"><span>Total</span><span>${money(total)}</span></div></div></div>`,
- `<button class="btn secondary" onclick="window.print()">Print Invoice</button><button class="btn primary" onclick="closeModal()">Done</button>`,true)
+ const customer=state.pos.customer||"Walk-in Customer";
+ const salesman=state.pos.salesman||"—";
+ if(pay==="Credit"){
+  state.creditBills.unshift({billNo,customer,total,paid:0,balance:total,date:new Date().toLocaleDateString("en-PK",{day:"2-digit",month:"short",year:"numeric"}),salesman});
+ }
+ state.cart=[];
+ state.pos.invoiceNo="";
+ const creditNote=pay==="Credit"?`<p style="font-size:11px;color:#a86405;margin-top:8px">Balance ${money(total)} posted on bill <b>${billNo}</b>. Recover later via Accounts → bill number.</p>`:"";
+ openModal("Sale Completed",`<div style="text-align:center;padding:12px 0"><div style="font-size:44px">✓</div><h2 style="margin:8px 0;color:#148c52">Bill ${billNo}</h2><p style="color:#667b8e;font-size:12px">Customer: <b>${customer}</b> · Salesman: <b>${salesman}</b><br>Payment: <b>${pay}</b></p>${creditNote}<div class="cart-total"><div class="cart-line grand"><span>Total</span><span>${money(total)}</span></div></div></div>`,
+ `<button class="btn secondary" onclick="window.print()">Print Invoice</button><button class="btn primary" onclick="closeModal();go('pos')">Done</button>`,true);
+ toast("Sale saved on bill "+billNo);
+}
+function openCreditRecovery(prefill=""){
+ const bill=prefill?findCreditBill(prefill):null;
+ openSheet("Recover Payment (Bill No)",`<div class="alert blue" style="margin-bottom:12px">When customer pays later, enter the <b>same invoice / bill number</b> from the credit sale. Recovery reduces that bill's balance.</div>
+ <div class="field"><label>Invoice / Bill No</label><input id="recoveryBillNo" value="${prefill||""}" placeholder="e.g. INV-0034 or BILL-1088" oninput="lookupRecoveryBill()"></div>
+ <div id="recoveryBillInfo">${bill?recoveryBillInfoHTML(bill):"<div class=\"alert orange\">Enter bill number and search.</div>"}</div>
+ <div class="field" style="margin-top:12px"><label>Amount receiving now (Rs.)</label><input id="recoveryAmount" type="number" value="${bill?bill.balance:""}" min="1"></div>
+ <div class="field"><label>Received via</label><select id="recoveryMethod"><option>Cash</option><option>Bank</option><option>Card</option></select></div>`,
+ `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="postCreditRecovery()">Post Recovery</button>`);
+ setTimeout(()=>{if(prefill)lookupRecoveryBill();document.getElementById("recoveryBillNo")?.focus()},100);
+}
+function recoveryBillInfoHTML(b){
+ return `<div class="info-box"><h4>Bill found</h4><div class="info-row"><span>Customer</span><b>${b.customer}</b></div><div class="info-row"><span>Bill total</span><b>${money(b.total)}</b></div><div class="info-row"><span>Already recovered</span><b style="color:#148c52">${money(b.paid)}</b></div><div class="info-row"><span>Balance due</span><b style="color:#d73544">${money(b.balance)}</b></div></div>`;
+}
+function lookupRecoveryBill(){
+ const b=findCreditBill(document.getElementById("recoveryBillNo")?.value||"");
+ const box=document.getElementById("recoveryBillInfo");
+ const amt=document.getElementById("recoveryAmount");
+ if(!box)return;
+ if(!b){box.innerHTML=`<div class="alert red">No credit bill found with this number.</div>`;return}
+ box.innerHTML=recoveryBillInfoHTML(b);
+ if(amt&&!amt.value)amt.value=b.balance;
+}
+function postCreditRecovery(){
+ const billNo=(document.getElementById("recoveryBillNo")?.value||"").trim();
+ const b=findCreditBill(billNo);
+ if(!b){toast("Bill number not found");return}
+ const amt=Math.max(0,Number(document.getElementById("recoveryAmount")?.value)||0);
+ if(amt<=0){toast("Enter recovery amount");return}
+ if(amt>b.balance){toast("Amount cannot exceed balance "+money(b.balance));return}
+ b.paid+=amt;
+ b.balance=Math.max(0,b.total-b.paid);
+ state.recoveries.unshift({billNo:b.billNo,customer:b.customer,amount:amt,method:document.getElementById("recoveryMethod")?.value||"Cash",date:new Date().toLocaleString("en-PK")});
+ closeSheet();
+ toast(`Recovery ${money(amt)} posted against ${b.billNo}`);
+ go("accounts");
 }
 
 function productFormFields(p={},edit=false){
@@ -975,17 +1056,22 @@ function openCashClose(){
  `<button class="btn ghost" onclick="closeSheet()">Cancel</button><button class="btn primary" onclick="sheetSave('Cash closing submitted for approval')">Submit Closing</button>`);
 }
 
-const mockReportData={
- sales:{title:"Sales Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Invoice","Date","Customer","Items","Payment","Amount"],rows:[["INV-0045","27 Sep 2026","Ali Khan","3","Cash","44,000"],["INV-0044","26 Sep 2026","Bilal Ahmed","2","Bank","32,000"],["INV-0043","25 Sep 2026","Sana Javed","1","Card","72,000"],["INV-0042","24 Sep 2026","Usman Q.","4","Cash","15,500"]],totals:[["Total Sales","6 invoices","","","","163,500"]]},
+function buildMockReportData(){
+ return {
+ customers:{title:"Customer Report (Each Customer)",period:"01 Sep 2026 – 27 Sep 2026",cols:["Customer","Phone","Bills","Total Sales","Recovered","Balance"],rows:[["Ali Khan","0315-1234567","4","280,000","268,000","12,000"],["Sana Javed","0333-7778899","2","103,500","103,500","0"],["Bilal Ahmed","0300-1112222","3","80,000","75,000","5,000"],["ABC School Gilgit","05811-555111","6","1,850,000","1,600,000","250,000"],["Usman Q.","0301-9998877","1","15,500","15,500","0"]],totals:[["Grand total","5 customers","16","2,329,000","2,062,000","267,000"]]},
+ products:{title:"Product Report (Each Product)",period:"01 Sep 2026 – 27 Sep 2026",cols:["Product","Category","Qty Sold","Unit Price","Sales","Stock Left"],rows:state.products.map((p,i)=>[p.name,p.cat,String(3+i%9),money(p.price),money(p.price*(3+i%9)),String(p.stock)]),totals:[["Top seller","Dell Latitude 5420","","","Rs. 425,000",""]]},
+ salesmen:{title:"Salesman Performance Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Salesman","Role","Invoices","Cash/Bank/Card","Credit Sales","Recovery Collected","Net Sales"],rows:[["Umair","Cashier","18","420,000","35,000","28,000","455,000"],["Arif Khan","Manager","12","310,000","120,000","85,000","430,000"],["Abid Shah","Super Admin","4","95,000","0","0","95,000"],["Faiza","Storekeeper","2","18,000","0","0","18,000"]],totals:[["Team total","4 staff","36","843,000","155,000","113,000","998,000"]]},
+ sales:{title:"Sales Register (Manual Bill Nos)",period:"01 Sep 2026 – 27 Sep 2026",cols:["Bill No","Date","Customer","Salesman","Payment","Amount"],rows:[["INV-0045","27 Sep 2026","Ali Khan","Umair","Cash","44,000"],["BILL-2201","26 Sep 2026","Bilal Ahmed","Arif Khan","Bank","32,000"],["INV-0043","25 Sep 2026","Sana Javed","Umair","Card","72,000"],["INV-0034","15 Sep 2026","Ali Khan","Umair","Credit","24,000"]],totals:[["Total","","","","","172,000"]]},
  purchase:{title:"Purchase Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Purchase #","Date","Supplier","Items","Paid","Total"],rows:[["PUR-0062","27 Sep 2026","Tech World","8","400,000","540,000"],["PUR-0061","24 Sep 2026","Galaxy IT","12","122,000","122,000"],["PUR-0060","21 Sep 2026","Future Tech","5","150,000","310,000"]],totals:[["Total Purchases","3 bills","","","672,000","972,000"]]},
  pnl:{title:"Profit & Loss (Estimate)",period:"September 2026",cols:["Category","Amount (Rs.)","Notes"],rows:[["Sales Revenue","250,000","Gross sales"],["Cost of Goods","145,000","Purchase cost estimate"],["Gross Profit","105,000",""],["Operating Expenses","85,000","Rent, utilities, salaries"],["Net Profit (Est.)","20,000","Prototype mock figures"]],totals:[]},
  stock:{title:"Stock / Inventory Report",period:"As of 27 Sep 2026",cols:["Product","Category","Qty","Min","Value (Est.)","Status"],rows:state.products.map(p=>[p.name,p.cat,String(p.stock),String(p.min),(p.stock*p.price).toLocaleString("en-PK"),p.stock<=p.min?"Low":"OK"]),totals:[["Low stock items",String(state.products.filter(p=>p.stock<=p.min).length),"","","",""]]},
  supplier:{title:"Supplier Outstanding Report",period:"As of 27 Sep 2026",cols:["Supplier","Purchases","Paid","Balance"],rows:[["Tech World","850,000","838,000","12,000"],["Galaxy IT","120,000","75,000","45,000"],["Future Tech","310,000","310,000","0"]],totals:[["Total Payable","","","57,000"]]},
  repair:{title:"Repair Center Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Ticket","Customer","Device","Status","Revenue"],rows:[["RT-0001","Ali Khan","Dell Laptop","Received","0"],["RT-0002","Sana Javed","Desktop PC","Checking","0"],["RT-0003","Bilal Ahmed","HP Laptop","Repairing","0"],["RT-0005","Faiza Noor","Laptop","Ready","23,500"]],totals:[["Completed revenue","","","","23,500"]]},
  expense:{title:"Expense Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Ref","Date","Category","Description","Amount"],rows:[["EXP-129","27 Sep 2026","Utilities","Electricity","3,500"],["EXP-128","25 Sep 2026","Transport","Delivery fuel","2,200"],["EXP-127","22 Sep 2026","Shop Rent","September rent","45,000"]],totals:[["Total Expenses","","","","50,700"]]},
- summary:{title:"Business Summary Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Metric","Value","Notes"],rows:[["Total Sales","Rs. 250,000","Selected period"],["Total Purchases","Rs. 980,000","Selected period"],["Gross Profit (Est.)","Rs. 270,000","Mock estimate"],["Total Expenses","Rs. 85,000","Recorded"],["Cash in Hand","Rs. 78,900","Today"],["Customer Receivable","Rs. 42,000","Outstanding"]],totals:[]}
-};
+ summary:{title:"Business Summary Report",period:"01 Sep 2026 – 27 Sep 2026",cols:["Metric","Value","Notes"],rows:[["Total Sales","Rs. 250,000","Selected period"],["Total Purchases","Rs. 980,000","Selected period"],["Gross Profit (Est.)","Rs. 270,000","Mock estimate"],["Total Expenses","Rs. 85,000","Recorded"],["Cash in Hand","Rs. 78,900","Today"],["Customer Receivable",money(state.creditBills.reduce((s,b)=>s+b.balance,0)),"From credit bills"]],totals:[]}
+};}
 function generateMockReport(type){
+ const mockReportData=buildMockReportData();
  const r=mockReportData[type]||mockReportData.summary;
  const head=`<div class="report-head"><div><h3>A&Z Consultants</h3><p>${r.title}</p><p>Gilgit · Mock prototype data</p></div><div style="text-align:right"><p><b>${r.period}</b></p><p>Generated: ${new Date().toLocaleString("en-PK")}</p></div></div>`;
  const table=`<div class="table-wrap"><table><thead><tr>${r.cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${r.rows.map(row=>`<tr>${row.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}${r.totals.map(row=>`<tr style="font-weight:700;background:#f5f9fc">${row.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -993,6 +1079,7 @@ function generateMockReport(type){
  toast("Mock report generated");
 }
 function downloadMockReportCSV(type){
+ const mockReportData=buildMockReportData();
  const r=mockReportData[type]||mockReportData.summary;
  const lines=[r.cols,...r.rows,...r.totals].filter(x=>x.length).map(row=>row.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines],{type:"text/csv"}));a.download=(type||"report")+"_mock_report.csv";a.click();
